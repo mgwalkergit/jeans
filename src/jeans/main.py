@@ -8,771 +8,632 @@ import matplotlib.pyplot as plt
 import astropy as ap
 import time
 
-def sample_r2d(size,model,**params):#samples from flattened plummer, exponential, or (not flattened) uniform 2d distributions
+g=0.004317#newton's G in units of km/s, pc, Msun
+
+def get_nfw_gc(c_triangle):
+    return 1./(np.log(1.+c_triangle)-c_triangle/(1.+c_triangle))
+
+def get_dehnen_core_gc(c_triangle):
+    return ((1.+c_triangle)**3)/c_triangle**3
+
+def get_dehnen_cusp_gc(c_triangle):
+    return ((1.+c_triangle)**2)/c_triangle**2
+
+def get_nfw_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
+    gc=get_nfw_gc(c_triangle)
+    r_triangle=(2.*g*m_triangle/triangle/((1.e-4*h)**2))**0.3333333333333333#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
+    return r_triangle,r_scale,gc*m_triangle/4./np.pi/r_scale**3
+
+def get_dehnen_core_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
+    gc=get_dehnen_core_gc(c_triangle)
+    r_triangle=(2.*g*m_triangle/triangle/((1.e-4*h)**2))**0.3333333333333333#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
+    return r_triangle,r_scale,gc*m_triangle/(4./3.)/np.pi/r_scale**3
+
+def get_dehnen_cusp_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
+    gc=get_dehnen_cusp_gc(c_triangle)
+    r_triangle=(2.*g*m_triangle/triangle/((1.e-4*h)**2))**0.3333333333333333#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
+    return r_triangle,r_scale,gc*m_triangle/(4./2.)/np.pi/r_scale**3
+
+def get_abg_triangle_scale(triangle,h,m_triangle,c_triangle,alpha,beta,gamma):#r_triangle, scale radius r_s and scale density, rho_s, of abg halo, given triangle parameters, units of U(m_triangle)/U(r_triangle)**3
+    r_triangle=(2.*g*m_triangle/triangle/((1.e-4*h)**2))**0.3333333333333333#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
+        
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    c=(3.-gamma+alpha)/alpha
+    z1=-c_triangle**alpha
+    hf1=scipy.special.hyp2f1(a,b,c,z1)  
+    return r_triangle,r_scale,m_triangle*(3.-gamma)/4./np.pi/(r_scale**3)/c_triangle**(3.-gamma)/hf1
+
+def nfw_density(x,c_triangle):# returns rho_NFW(x) / rho_scale, where x = r / r_triangle
+    cx=c_triangle*x #r / r_scale
+    return 1./cx/(1.+cx)**2
+
+def dehnen_core_density(x,c_triangle):# returns rho_NFW(x) / rho_scale, where x = r / r_triangle
+    cx=c_triangle*x #r / r_scale
+    return 1./(1.+cx)**4
+
+def dehnen_cusp_density(x,c_triangle):# returns rho_NFW(x) / rho_scale, where x = r / r_triangle
+    cx=c_triangle*x #r / r_scale
+    return 1./cx/(1.+cx)**3
+
+def nfw_mass(x,c_triangle):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+    gc=get_nfw_gc(c_triangle)
+    cx=c_triangle*x #r / r_scale
+    return gc*(np.log(1.+cx)-cx/(1.+cx))
+
+def dehnen_core_mass(x,c_triangle):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+    gc=get_dehnen_core_gc(c_triangle)
+    cx=c_triangle*x #r / r_scale
+    return gc*(cx**3)/(1.+cx)**3
+
+def dehnen_cusp_mass(x,c_triangle):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+    gc=get_dehnen_cusp_gc(c_triangle)
+    cx=c_triangle*x #r / r_scale
+    return gc*(cx**2)/(1.+cx)**2
+
+def fncore(x,r_core,n_core):#returns f^n(x) for coreNFW model (Read, Walker, Pascal 2018), where x=r/r_triangle, r_core=r_core/r_triangle
+    return (np.tanh(np.float64(x)/r_core))**n_core
+
+def cnfw_density(x,c_triangle,r_core,n_core):#returns rho_coreNFW(x) / rho_s, where x = r/r_triangle and rho_s is scale radius of NFW profile
+    ncorem1=n_core-1.
+    two=2.
+    return fncore(x,r_core,n_core)*nfw_density(x,c_triangle)+n_core*fncore(x,r_core,ncorem1)*(1.-fncore(x,r_core,two))/(x**2)/get_nfw_gc(c_triangle)*nfw_mass(x,c_triangle)/r_core/(c_triangle**3)
+
+def cnfw_mass(x,c_triangle,r_core,n_core):# returns M_cNFW(x) / m_triangle, where x=r/r_triangle, x=r/r_triangle, r_core=(core radius)/ r_triangle
+    return fncore(x,r_core,n_core)*nfw_mass(x,c_triangle)
+
+def cnfwt_density(x,c_triangle,r_core,n_core,r_tide,delta):#returns rho_coreNFWtides(x) / rho_0, where x = r/r_triangle
+    if ((type(x) is float)|(type(x) is np.float64)):
+        if x<r_tide:
+            return cnfw_density(x,c_triangle,r_core,n_core)
+        else:
+            return cnfw_density(r_tide,c_triangle,r_core,n_core)*((x/r_tide)**(-delta_halo))
+    elif ((type(x) is list)|(type(x) is np.ndarray)):
+        val=np.zeros(len(x))
+        val[x<r_tide]=cnfw_density(x[x<r_tide],c_triangle,r_core,n_core)
+        val[x>=r_tide]=cnfw_density(r_tide,c_triangle,r_core,n_core)*((x[x>=r_tide]/r_tide)**(-delta_halo))
+        return val
     
-    class r2d:
-        def __init__(self,r_ell=None,x=None,y=None,r_xyz=None,ellipticity=None,position_angle=None,r_scale=None,model=None,alpha=None,beta=None,gamma=None,func=None,rhalf_2d=None):
-            self.r_ell=r_ell
-            self.x=x
-            self.y=y
-            self.r_xyz=r_xyz
-            self.ellipticity=ellipticity
-            self.position_angle=position_angle
-            self.r_scale=r_scale
+def cnfwt_mass(x,c_triangle,r_core,n_core,r_tide,delta):#returns M_cNFWt(x) / m_triangle, where x=r/r_triangle, r_core=(core radius)/r_triangle, r_tide=(tidal radius)/r_triangle
+    if ((type(x) is float)|(type(x) is np.float64)):
+        if x<r_tide:
+            return cnfw_mass(x,c_triangle,r_core,n_core)
+        else:
+            return cnfw_mass(r_tide,c_triangle,r_core,n_core,r_tide)+cnfw_density(r_tide,c_triangle,r_core,n_core)*get_nfw_gc(c_triangle)/(3.-delta)*((c_triangle*r_tide)**3)*(((x/r_tide)**(3.-delta))-1.)
+    elif ((type(x) is list)|(type(x) is np.ndarray)):
+        val=np.zeros(len(x))
+        val[x<r_tide]=cnfw_mass(x[x<r_tide],c_triangle,r_core,n_core)
+        val[x>=r_tide]=cnfw_mass(r_tide,c_triangle,r_core,n_core)+cnfw_density(r_tide,c_triangle,r_core,n_core)*get_nfw_gc(c_triangle)/(3.-delta)*((c_triangle*r_tide)**3)*(((x[x>=r_tide]/r_tide)**(3.-delta))-1.)
+        return val
+
+def abg_triangle_density(x,c_triangle,alpha,beta,gamma):# returns rho_abg(x) / rho_scale, where x = r / r_triangle
+    cx=params['c_triangle']*x #r / r_scale
+    return 1./(cx**gamma)/(1.+cx**alpha)**((beta-gamma)/alpha)
+
+def abg_triangle_mass(x,c_triangle,alpha,beta,gamma):# returns enclosed mass M_abg(x) / m_triangle, where x = r/r_triangle
+    cx=c_triangle*x #r / r_scale
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    c=(3.-gamma+alpha)/alpha
+    z1=-cx**alpha
+    z2=-c_triangle**alpha
+    hf1=scipy.special.hyp2f1(a,b,c,z1)  
+    hf2=scipy.special.hyp2f1(a,b,c,z2)
+    return ((cx/c_triangle)**(3.-gamma))*hf1/hf2
+
+def get_plum_scale(luminosity_tot,r_scale):#nu0, normalization factor for luminosity density profile
+    nu0=3.*luminosity_tot/4./np.pi/r_scale**3
+    sigma0=luminosity_tot/np.pi/r_scale**2
+    return nu0,sigma0
+
+def get_exp_scale(luminosity_tot,r_scale):#nu0, normalization factor for luminosity density profile
+    nu0=luminosity_tot/2./np.pi**2/r_scale**3
+    sigma0=luminosity_tot/2./np.pi/r_scale**2
+    return nu0,sigma0
+
+def get_a2bg_scale(luminosity_tot,r_scale,beta,gamma):#nu0, normalization factor for luminosity density profile
+    alpha=2. 
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    c=beta/2.
+    d=(beta-3.)/alpha
+    nu0=luminosity_tot/2./np.pi/r_scale**3/scipy.special.gamma(d)/scipy.special.gamma(a)*scipy.special.gamma(b)
+    sigma0=luminosity_tot/4./np.sqrt(np.pi)/(r_scale**2)*(beta-3.)*scipy.special.gamma(b)/scipy.special.gamma(a)/scipy.special.gamma(c)
+    return nu0,sigma0
+
+def get_abg_nu0(luminosity_tot,r_scale,alpha,beta,gamma):#nu0, normalization factor for luminosity density profile
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    c=beta/2.
+    d=(beta-3.)/alpha
+    nu0=luminosity_tot/4./np.pi/r_scale**3*alpha*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(a)
+    sigma0=np.nan#haven't yet implemented, probably a numerical integration
+    return nu0,sigma0
+
+def plum_density(x):#nu(x) / nu0, x=r/r_scale
+    return 1./(1.+x**2)**(2.5)
+
+def plum_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
+    return 1./(1.+x**2)**2
+
+def exp_density(x):#nu(x) / nu0, x=r/r_scale
+    return scipy.special.kn(0,x)
+
+def exp_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
+    return np.exp(-x)
+
+def a2bg_density(x,beta,gamma):#nu(x) / nu0, x=r/r_scale
+    return 1./(x**gamma)/(1.+x**2)**((beta-gamma)/2.)
+
+def a2bg_density_2d(x,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
+    if x<1.e-50:
+        x=1.e-50
+    a=(beta-1.)/2.
+    b=(beta-gamma)/2.
+    c=beta/2.
+    z1=-1./x**2
+    hf1=scipy.special.hyp2f1(a,b,c,z1)  
+    return x**(1.-beta)*hf1
+    
+def abg_density(x,alpha,beta,gamma):#nu(x) / nu0, x=r/r_scale
+    return 1./(x**gamma)/(1.+x**alpha)**((beta-gamma)/alpha)
+
+def abg_density_2d(x,alpha,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
+    return np.nan #requires numerical integration, haven't implemented this yet
+
+def plum_number(x):#N(x) / N_tot, x=r/r_scale
+    return (x**3)/(1.+x**2)**(1.5)
+
+def exp_number(x):#N(x) / N_tot, x=r/r_scale
+    if x>100:#fudge to overcome numerical error (function below returns nan)
+        return 1.
+    return 1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x)*scipy.special.modstruve(1,x)+scipy.special.kn(1,x)*(3.*np.pi*scipy.special.modstruve(2,x)-4.*x))
+
+def a2bg_number(x,beta,gamma):#N(x)/N_tot, x=r/r_scale
+    alpha=2.
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    c=(3.-gamma+alpha)/alpha
+    d=(beta-3.)/alpha
+    z1=-x**alpha
+    z2=-np.inf**alpha
+    hf1=scipy.special.hyp2f1(a,b,c,z1)  
+    hf2=scipy.special.hyp2f1(a,b,c,z2)
+    #return abg_number(x,2.,beta,gamma)
+    return alpha/(3.-gamma)*(x**(3.-gamma))*hf1*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(a)
+    
+def abg_number(x,alpha,beta,gamma):#N(x)/N_tot, x=r/r_scale
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    c=(3.-gamma+alpha)/alpha
+    d=(beta-3.)/alpha
+    z1=-x**alpha
+    z2=-np.inf**alpha
+    hf1=scipy.special.hyp2f1(a,b,c,z1)  
+    hf2=scipy.special.hyp2f1(a,b,c,z2)
+    #return (x**(3.-gamma))*hf1/hf2 #should be equivalent to below
+    return alpha/(3.-gamma)*(x**(3.-gamma))*hf1*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(a)
+
+def plum_nscalenorm():#N(r_scale)/(nu0 *r_scale**3)
+    return 4.*np.pi/3./(2.**1.5)
+
+def exp_nscalenorm():#N(r_scale)/(nu0 *r_scale**3)
+    return 2.*np.pi/3.*(3.*np.pi*scipy.special.kn(2,1.)*scipy.special.modstruve(1,1.)+scipy.special.kn(1,1.)*(3.*np.pi*scipy.special.modstruve(2,1.)-4.))
+
+def a2bg_nscalenorm(beta,gamma):#N(r_scale)/(nu0 * r_scale**3)
+    alpha=2.
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    c=(3.-gamma+alpha)/alpha
+    z2=-1.
+    hf2=scipy.special.hyp2f1(a,b,c,z2)
+    return 4.*np.pi/(3.-gamma)*hf2
+    
+def abg_nscalenorm(alpha,beta,gamma):#N(r_scale)/(nu0 * r_scale**3)
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    c=(3.-gamma+alpha)/alpha
+    z2=-1.
+    hf2=scipy.special.hyp2f1(a,b,c,z2)
+    return 4.*np.pi/(3.-gamma)*hf2
+
+def plum_ntotnorm():#N(r=infinity)/(nu0 * r_scale**3)
+    return 4.*np.pi/3.
+
+def exp_ntotnorm():#N(r=infinity)/(nu0 * r_scale**3)
+    return 2.*(np.pi**2)
+
+def a2bg_ntotnorm(beta,gamma):#N(r=infinity)/(nu0 * r_scale**3)
+    alpha=2.
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    #c=(3.-gamma+alpha)/alpha
+    d=(beta-3.)/alpha
+    return 2.*np.pi*scipy.special.gamma(d)*scipy.special.gamma(a)/scipy.special.gamma(b)
+
+def abg_ntotnorm(alpha,beta,gamma):#N(r=infinity)/(nu0 * r_scale**3)
+    a=(3.-gamma)/alpha
+    b=(beta-gamma)/alpha
+    #c=(3.-gamma+alpha)/alpha
+    d=(beta-3.)/alpha
+    return 4.*np.pi/alpha*scipy.special.gamma(d)*scipy.special.gamma(a)/scipy.special.gamma(b)
+
+
+
+def get_dmhalo(model,**params):
+    
+    class dmhalo:
+        
+        def __init__(self,model=None,triangle=None,h=None,m_triangle=None,c_triangle=None,r_triangle=None,r_core=None,n_core=None,r_tide=None,delta=None,alpha=None,beta=None,gamma=None,rho_scale=None,r_scale=None,v_max=None,r_max=None,func_density=None,func_mass=None,func_vcirc=None):
+
             self.model=model
+            self.triangle=triangle
+            self.h=h
+            self.m_triangle=m_triangle
+            self.c_triangle=c_triangle
+            self.r_triangle=r_triangle
+            self.r_core=r_core
+            self.n_core=n_core
+            self.r_tide=r_tide
+            self.delta=delta
             self.alpha=alpha
             self.beta=beta
             self.gamma=gamma
-            self.func=func
-            self.rhalf_2d=rhalf_2d
+            self.rho_scale=rho_scale
+            self.r_scale=r_scale
+            self.v_max=v_max
+            self.r_max=r_max
+            self.func_density=func_density
+            self.func_mass=func_mass
+            self.func_vcirc=func_vcirc
 
-    if not 'brentq_low' in params:
-        params['brentq_low']=1.e-20
-    if not 'brentq_high' in params:
-        params['brentq_high']=1.e+20
+    if model=='nfw':
         
-    def flatten_2d(size,params):#computes x,y coordinates (units of r_scale) given ellipticity and position angle (units of R/r_scale**2)
-        phi=2.*np.pi*np.random.uniform(low=0.,high=1.,size=size)#azimuthal angle in circular coordinates
-        x0,y0=np.cos(phi)*(1.-params['ellipticity']),np.sin(phi)#stretch along x axis
-        xflat=x0*np.cos(-params['position_angle']*np.pi/180.)-y0*np.sin(-params['position_angle']*np.pi/180.)#now rotate axes by position angle
-        yflat=y0*np.cos(-params['position_angle']*np.pi/180.)+x0*np.sin(-params['position_angle']*np.pi/180.)
-        return xflat,yflat
+        r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
+        
+        def func_density(x):
+            return nfw_density(x,params['c_triangle'])
+        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+            return nfw_mass(x,params['c_triangle'])
 
-    if not 'r_scale' in params:
-        params['r_scale']=1.
-        warnings.warn('r_scale not specified, assuming r_scale=1')
-    if params['r_scale']<0:
-        raise ValueError('must have r_scale >=0.')
-    if (('position_angle' in params)&(not 'ellipticity' in params)):
-        raise ValueError('specified position_angle but not ellipticity')
-    if (('position_angle' not in params)&('ellipticity' in params)):
-        raise ValueError('specified ellipticity but not position_angle')        
-    if ((not 'ellipticity' in params)&(not 'position_angle' in params)):
-        params['ellipticity']=0.
-        params['position_angle']=0.
-        if not model=='uni':
-            warnings.warn('ellipticity and position_angle not specified, assuming ellipticity=0')
-    if ((params['ellipticity']<0.)|(params['ellipticity']>1.)):
-        raise ValueError('ellipticity = '+str(params['ellipticity'])+' is invalid value, must be between 0 and 1')
-    if ((model=='uni')&(params['ellipticity']!=0)):
-        warnings.warn('specified uniform distribution with nonzero ellipticity!')
-    if model=='a2bg':
-        if 'beta' not in params:
-            raise ValueError('must specify beta and gamma for 2bg model')
-        if 'gamma' not in params:
-            raise ValueError('must specify beta and gamma for 2bg model')
+    if model=='dehnen_core':
         
-    flat_x,flat_y=flatten_2d(size,params)
-    uni=np.random.uniform(low=0.,high=1.,size=size)
+        r_triangle,r_scale,rho_scale=get_dehnen_core_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
+        
+        def func_density(x):
+            return dehnen_core_density(x,params['c_triangle'])
+        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+            return dehnen_core_mass(x,params['c_triangle'])
+
+    if model=='dehnen_cusp':
+        
+        r_triangle,r_scale,rho_scale=get_dehnen_cusp_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
+        
+        def func_density(x):
+            return dehnen_cusp_density(x,params['c_triangle'])
+        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+            return dehnen_cusp_mass(x,params['c_triangle'])
+
+    elif model=='abg_triangle':
+
+        r_triangle,r_scale,rho_scale=get_abg_triangle_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
+
+        def func_density(x):
+            return abg_triangle_density(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
+        def func_mass(x):
+            return abg_triangle_mass(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
+
+    elif model=='cnfw':
+        
+        r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
+        
+        def func_density(x):
+            return cnfw_density(x,params['c_triangle'],params['r_core'],params['n_core'])
+        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+            return cnfw_mass(x,params['c_triangle'],params['r_core'],params['n_core'])
+
+    elif model=='cnfwt':
+        
+        r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
+        
+        def func_density(x):
+            return cnfwt_density(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
+        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+            return cnfwt_mass(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
+        
+    def func_vcirc(x):# returns circular velocity, km/s
+        return np.sqrt(g*func_mass(x)*params['m_triangle']/(x*r_triangle))
+
+    def neg_vcirc2(x):
+        if x<0.:
+            return 1.e+30
+        return -func_mass(x)/x
+        
+    res=scipy.optimize.minimize(neg_vcirc2,[1.],method='nelder-mead',options={'xatol': 1e-8, 'disp': True})
+    r_max=res.x[0]*r_triangle
+    v_max=func_vcirc(res.x[0])
+
+    if model=='nfw':
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+    if model=='dehnen_core':
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+    if model=='dehnen_cusp':
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+    elif model=='abg_triangle':
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+    elif model=='cnfw':
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+    elif model=='cnfwt':
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],r_tide=params['r_tide'],delta=params['delta'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+    else:
+        raise TypeError('DM halo not properly specified!')
     
+def get_tracer(model,**params):
+
+    class tracer:
+
+        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu0=None,sigma0=None,nscalenorm=None,ntotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,func_density=None,func_density_2d=None,func_number=None):
+
+            self.model=model
+            self.luminosity_tot=luminosity_tot
+            self.upsilon=upsilon
+            self.r_scale=r_scale
+            self.nu0=nu0
+            self.sigma0=sigma0
+            self.nscalenorm=nscalenorm
+            self.ntotnorm=ntotnorm
+            self.alpha=alpha
+            self.beta=beta
+            self.gamma=gamma
+            self.rhalf_2d=rhalf_2d
+            self.rhalf_3d=rhalf_3d
+            self.func_density=func_density
+            self.func_density_2d=func_density_2d
+            self.func_number=func_number
+
     if model=='plum':
-        
-        bigsigma0=size/np.pi/params['r_scale']**2
-        rhalf_2d=params['r_scale']
-        
-        def func(x):
-            return bigsigma0/(1+x**2)**2
 
-        r=sampler.plum(size)#elliptical radius/r_scale
-
-        return r2d(r_ell=r*params['r_scale'],x=r*flat_x*params['r_scale'],y=r*flat_y*params['r_scale'],r_xyz=np.c_[r*flat_x*params['r_scale'],r*flat_y*params['r_scale'],np.zeros(len(r),dtype=float)],ellipticity=params['ellipticity'],position_angle=params['position_angle'],r_scale=params['r_scale'],model=model,func=func,rhalf_2d=rhalf_2d)
+        rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.)
+        nu0,sigma0=get_plum_scale(params['luminosity_tot'],params['r_scale'])
+        def func_density(x):
+            return plum_density(x)
+        def func_density_2d(x):
+            return plum_density_2d(x)
+        def func_number(x):
+            return plum_number(x)
+        
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=plum_nscalenorm(),ntotnorm=plum_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,func_density=func_density,func_density_2d=func_density_2d,func_number=func_number)
 
     if model=='exp':
+
+        rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.)
+        nu0,sigma0=get_exp_scale(params['luminosity_tot'],params['r_scale'])
+        def func_density(x):
+            return exp_density(x)
+        def func_density_2d(x):
+            return exp_density_2d(x)
+        def func_number(x):
+            return exp_number(x)
         
-        bigsigma0=size/2/np.pi/params['r_scale']**2
-        rhalf_2d=1.67835*params['r_scale']
-
-        def func(x):
-            return bigsigma0*np.exp(-x)
-
-        r=sampler.exp(size,bretnt_low=params['brentq_low'],brentq_high=params['brentq_high']) #elliptical radius / r_scale
-
-        return r2d(r_ell=r*params['r_scale'],x=r*flat_x*params['r_scale'],y=r*flat_y*params['r_scale'],r_xyz=np.c_[r*flat_x*params['r_scale'],r*flat_y*params['r_scale'],np.zeros(len(r),dtype=float)],ellipticity=params['ellipticity'],position_angle=params['position_angle'],r_scale=params['r_scale'],model=model,func=func,rhalf_2d=rhalf_2d)
-
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=exp_nscalenorm(),ntotnorm=exp_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,func_density=func_density,func_density_2d=func_density_2d,func_number=func_number)
+    
     if model=='a2bg':
+
+        rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.,beta=params['beta'],gamma=params['gamma'])
+        nu0,sigma0=get_a2bg_scale(params['luminosity_tot'],params['r_scale'],params['beta'],params['gamma'])
+        def func_density(x):
+            return a2bg_density(x,params['beta'],params['gamma'])
+        def func_density_2d(x):
+            return a2bg_density_2d(x,params['beta'],params['gamma'])
+        def func_number(x):
+            return a2bg_number(x,params['beta'],params['gamma'])
         
-        bigsigma0=size*(params['beta']-3)*scipy.special.gamma((params['beta']-params['gamma'])/2)/4/np.sqrt(np.pi)/scipy.special.gamma((3-params['gamma'])/2)/scipy.special.gamma(params['beta']/2)/params['r_scale']**2
-
-        def rootfind_a2bg_2d(x,beta,gamma):
-            return 0.5-np.sqrt(np.pi)*scipy.special.gamma((beta-gamma)/2)/2/scipy.special.gamma(beta/2)/scipy.special.gamma((3-gamma)/2)*x**(3-beta)*scipy.special.hyp2f1((beta-3)/2,(beta-gamma)/2,beta/2,-1/x**2)
-
-        low0=1.e-10
-        high0=1.e+10
-        rhalf_2d=params['r_scale']*scipy.optimize.brentq(rootfind_a2bg_2d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=1000,full_output=False,disp=True)
-
-        def func(x):
-            return bigsigma0*x**(1-params['beta'])*scipy.special.hyp2f1((params['beta']-1)/2,(params['beta']-params['gamma'])/2,params['beta']/2,-1/x**2)            
-
-        r=sampler.a2bg(size,params['beta'],params['gamma'],brentq_low=params['brentq_low'],brentq_high=params['brentq_high'])#elliptical radius / r_scale
-
-        return r2d(r_ell=r*params['r_scale'],x=r*flat_x*params['r_scale'],y=r*flat_y*params['r_scale'],r_xyz=np.c_[r*flat_x*params['r_scale'],r*flat_y*params['r_scale'],np.zeros(len(r),dtype=float)],ellipticity=params['ellipticity'],position_angle=params['position_angle'],r_scale=params['r_scale'],model=model,beta=params['beta'],gamma=params['gamma'],func=func,rhalf_2d=rhalf_2d)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=a2bg_nscalenorm(params['beta'],params['gamma']),ntotnorm=a2bg_ntotnorm(params['beta'],params['gamma']),beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,func_density=func_density,func_density_2d=func_density_2d,func_number=func_number)
     
-    if model=='uni':
-        bigsigma0=size/np.pi/params['r_scale']**2
-        rhalf_2d=np.sqrt(0.5)*params['r_scale']
-        
-        def func(x):
-            return bigsigma0*x/x
-        
-        r=sampler.uni(size)#elliptical radius (can in practice be elliptical if nonzero ellipticity is specified) / r_scale
+    if model=='abg':
 
-        return r2d(r_ell=r*params['r_scale'],x=r*flat_x*params['r_scale'],y=r*flat_y*params['r_scale'],r_xyz=np.c_[r*flat_x*params['r_scale'],r*flat_y*params['r_scale'],np.zeros(len(r),dtype=float)],ellipticity=params['ellipticity'],position_angle=params['position_angle'],r_scale=params['r_scale'],model=model,func=func,rhalf_2d=rhalf_2d)
+        rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'])
+        nu0,sigma0=get_abg_scale(params['luminosity_tot'],params['r_scale'],params['alpha'],params['beta'],params['gamma'])
+        def func_density(x):
+            return abg_density(x,params['alpha'],params['beta'],params['gamma'])
+        def func_density_2d(x):
+            return abg_density_2d(x,params['alpha'],params['beta'],params['gamma'])
+        def func_number(x):
+            return abg_number(x,params['alpha'],params['beta'],params['gamma'])
+        
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=abg_nscalenorm(params['alpha'],params['beta'],params['gamma']),ntotnorm=abg_ntotnorm(params['alpha'],params['beta'],params['gamma']),alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,func_density=func_density,func_density_2d=func_density_2d,func_number=func_number)
 
-def sample_imf(size,model,**params):
-    class imf:
-        def __init__(self,model=None,mass=None,mean=None,std=None,alpha=None,alpha1=None,alpha2=None,alpha3=None,m_break=None,m1_break=None,m2_break=None,m_min=None,m_max=None,k=None,k1=None,k2=None,k3=None,func=None):
+
+def get_anisotropy(model,**params):
+
+    class anisotropy:
+
+        def __init__(self,model=None,beta_0=None,beta_inf=None,r_beta=None,n_beta=None,f_beta=None,beta=None):
+
             self.model=model
-            self.mass=mass
-            self.mean=mean
-            self.std=std
-            self.alpha=alpha
-            self.alpha1=alpha1
-            self.alpha2=alpha2
-            self.alpha3=alpha3
-            self.m_break=m_break
-            self.m1_break=m1_break
-            self.m2_break=m2_break
-            self.m_min=m_min
-            self.m_max=m_max
-            self.k=k
-            self.k1=k1
-            self.k2=k2
-            self.k3=k3
-            self.func=func
+            self.beta_0=beta_0
+            self.beta_inf=beta_inf
+            self.r_beta=r_beta
+            self.n_beta=n_beta
+            self.f_beta=f_beta
+            self.beta=beta
 
-    if not 'm_min' in params:
-        params['m_min']=0.1
-    if not 'm_max' in params:
-        params['m_max']=150.
-    if params['m_min']>params['m_max']:
-        raise ValueError ('m_min cannot be larger than m_max')
-        
-    if model=='salpeter':
+    if model=='read':
 
-        if not 'alpha' in params:
-            params['alpha']=2.3
-        
-        mass,k_salpeter=sampler.pl(size,params['m_min'],params['m_max'],params['alpha'])
-
-        def salpeter_func(x):
-            return k_salpeter*x**-params['alpha']
-                    
-        return imf(model=model,mass=mass,alpha=params['alpha'],k=k_salpeter,m_min=params['m_min'],m_max=params['m_max'],func=salpeter_func)
-
-    if model=='lognormal':
-
-        if not 'mean' in params:
-            params['mean']=0.08
-        if not 'std' in params:
-            params['std']=0.7
-            
-        erf1=scipy.special.erf((np.log10(params['mean'])*np.log(10.)-np.log(params['m_min']))/np.sqrt(2.)/np.log(10.)/params['std'])
-        erf2=scipy.special.erf((np.log10(params['mean'])*np.log(10.)-np.log(params['m_max']))/np.sqrt(2.)/np.log(10.)/params['std'])
-        k_lognormal=np.sqrt(2./np.pi)/params['std']/(erf1-erf2)
-        
-        def lognormal_func(x):
-            return k_lognormal/x/np.log(10.)*np.exp(-(np.log10(x)-np.log10(params['mean']))**2/2./params['std']**2)
-            
-        mass=sampler.lognormal(size,params['m_min'],params['m_max'],params['mean'],params['std'])
-        
-        return imf(model=model,mass=mass,mean=params['mean'],std=params['std'],k=k_lognormal,m_min=params['m_min'],m_max=params['m_max'],func=lognormal_func)
-        
-    if model=='kroupa':#sample from kroupa IMF, 3 separate power laws with indices -alpha1, -alpha2, -alpha3, break masses at m1_break and m2_break
-
-        if not 'alpha1' in params:
-            params['alpha1']=0.3
-        if not 'alpha2' in params:
-            params['alpha2']=1.3
-        if not 'alpha3' in params:
-            params['alpha3']=2.3
-        if not 'm1_break' in params:
-            params['m1_break']=0.08
-        if not 'm2_break' in params:
-            params['m2_break']=0.5
-            
-        if params['m1_break']>params['m2_break']:
-            raise ValueError ('Kroupa IMF: m1_break cannot be larger than m2_break')
-        
-        #get normalization constant for each of three pieces
-        k2_over_k1=params['m1_break']**(params['alpha2']-params['alpha1'])
-        k3_over_k2=params['m2_break']**(params['alpha3']-params['alpha2'])
-        
-        mass,k1,k2,k3=sampler.kroupa(size,params['m_min'],params['m_max'],params['alpha1'],params['alpha2'],params['alpha3'],params['m1_break'],params['m2_break'])
-                            
-        def kroupa_func(x):
-
-            if ((type(x) is list)|(type(x) is np.ndarray)):
-                val=np.zeros(len(x),dtype=float)
-                first=np.where(x<params['m1_break'])[0]
-                second=np.where((x>=params['m1_break'])&(x<params['m2_break']))[0]
-                third=np.where(x>=params['m2_break'])[0]
-                val[first]=k1*x[first]**-params['alpha1']
-                val[second]=k2*x[second]**-params['alpha2']
-                val[third]=k3*x[third]**-params['alpha3']
-            elif ((type(x) is float)|(type(x) is int)|(type(x) is np.float64)):
-                if x<params['m1_break']:
-                    val=k1*x**-params['alpha1']
-                elif ((x>=params['m1_break'])&(x<params['m2_break'])):
-                    val=k2*x**-params['alpha2']
-                elif x>=params['m2_break']:
-                    val=k3*x**-params['alpha3']
-                else:
-                    raise ValueError('problem in kroupa_func')
-                    
-            return val
-        
-        return imf(model=model,mass=mass,alpha1=params['alpha1'],alpha2=params['alpha2'],alpha3=params['alpha3'],m1_break=params['m1_break'],m2_break=params['m2_break'],m_min=params['m_min'],m_max=params['m_max'],k1=k1,k2=k2,k3=k3,func=kroupa_func)
-
-    if model=='bpl':#sample from broken power law, 2 separate power laws with indices -alpha1, -alpha2, break mass at m_break
-
-        if not 'alpha1' in params:
-            params['alpha1']=1.3
-        if not 'alpha2' in params:
-            params['alpha2']=2.3
-        if not 'm_break' in params:
-            params['m_break']=0.5
-            
-        #get normalization constant for each of three pieces
-        k2_over_k1=params['m_break']**(params['alpha2']-params['alpha1'])
-        
-        mass,k1,k2=sampler.bpl(size,params['m_min'],params['m_max'],params['alpha1'],params['alpha2'],params['m_break'])
-        
-        def bpl_func(x):
-
-            if ((type(x) is list)|(type(x) is np.ndarray)):
-                val=np.zeros(len(x),dtype=float)
-                first=np.where(x<params['m_break'])[0]
-                second=np.where(x>=params['m_break'])[0]
-                val[first]=k1*x[first]**-params['alpha1']
-                val[second]=k2*x[second]**-params['alpha2']
-                
-            elif ((type(x) is float)|(type(x) is int)):
-                if x<params['m_break']:
-                    val=k1*x**-params['alpha1']
-                elif x>=params['m_break']:
-                    val=k2*x**-params['alpha2']
-                else:
-                    raise ValueError('problem in bpl_func')
-            else:
-                raise TypeError('type error in bpl func')
-                
-            return val
-        
-        return imf(model=model,mass=mass,alpha1=params['alpha1'],alpha2=params['alpha2'],m_break=params['m_break'],m_min=params['m_min'],m_max=params['m_max'],k1=k1,k2=k2,func=bpl_func)
-
-def sample_orbit_2body(f_period,**params):#f_period is time of observation / period, with f_period=0 at pericenter.  Can handle f_period < 1e10.
-
-    class orbit_2body:
-        
-        def __init__(self,semimajor_axis=None,eccentricity=None,mass_primary=None,mass_secondary=None,energy=None,angular_momentum=None,f_period=None,time=None,period=None,eta=None,theta=None,r_xyz=None,r_sph=None,v_xyz=None,v_sph=None,r1_xyz=None,v1_xyz=None,r1_sph=None,v1_sph=None,r2_xyz=None,v2_xyz=None,r2_sph=None,v2_sph=None,inclination=None,longitude=None,r_obs_xyz=None,v_obs_xyz=None,r_obs_sph=None,v_obs_sph=None,r1_obs_xyz=None,v1_obs_xyz=None,r1_obs_sph=None,v1_obs_sph=None,r2_obs_xyz=None,v2_obs_xyz=None,r2_obs_sph=None,v2_obs_sph=None,rot_matrix=None):
-            self.semimajor_axis=semimajor_axis #AU
-            self.eccentricity=eccentricity
-            self.mass_primary=mass_primary #Msun
-            self.mass_secondary=mass_secondary #Msun
-            self.energy=energy #total orbital energy per (reduced) mass, units of AU^2 / yr^2
-            self.angular_momentum=angular_momentum #total orbital angular momentum per (reduced) mass, units of AU^2/yr
-            self.f_period=f_period #time/period
-            self.time=time #time sinze t=0 at theta=0, yr
-            self.period=period #orbital period, yr
-            self.eta=eta #eccentric anomaly (radians)
-            self.theta=theta #true anomaly (radians)
-            self.r_xyz=r_xyz #reduced mass position in CM frame, AU
-            self.v_xyz=v_xyz #reduced mass velocity in CM frame, AU/yr
-            self.r_sph=r_sph #reduced mass position (r,longitude,inclination), in (AU, radians, radians); longitude is azimuthal angle 
-            self.v_sph=v_sph #reduced mass velocity (v_r,v_longidue,v_inclination) in AU/yr
-            self.r1_xyz=r1_xyz #particle 1 position, AU
-            self.v1_xyz=v1_xyz #particle 1 velocity, AU/yr
-            self.r2_xyz=r2_xyz #particle 2 position, AU
-            self.v2_xyz=v2_xyz #particle 2 velocity, AU/yr
-            self.inclination=inclination #inclination defined by observer's position, radians
-            self.longitude=longitude #azimuthal angle defined by observer's position, radians
-            self.r_obs_xyz=r_obs_xyz
-            self.v_obs_xyz=v_obs_xyz
-            self.r1_obs_xyz=r1_obs_xyz            
-            self.v1_obs_xyz=v1_obs_xyz
-            self.r2_obs_xyz=r2_obs_xyz
-            self.v2_obs_xyz=v2_obs_xyz
-            self.rot_matrix=rot_matrix
-
-    #default is Sun/Earth orbit
-    if not 'period' in params:
-        params['period']=1.*u.yr
-    if not 'eccentricity' in params:
-        params['eccentricity']=0.
-    if not 'mass_primary' in params:
-        params['mass_primary']=1.*u.M_sun
-    if not 'mass_ratio' in params:
-        params['mass_ratio']=1.
-
-    #if any of f_period, mass_primary, mass_secondary, period, eccentricity, inclination, longitude are input as scalars, convert to arrays of same length as f_period (if f_period is input as scalar, first make it array of length 1)
+        def beta(x):#x = r / r_beta
+            return params['beta_0']+(params['beta_inf']-params['beta_0'])/(1.+x**(-params['n_beta']))
+        def f_beta(x):# x = r / r_beta
+            return x**(2.*params['beta_inf'])*(1.+x**(-params['n_beta']))**(2.*(params['beta_inf']-params['beta_0'])/params['n_beta'])
     
-    f_period=np.array(f_period)
-    params['eccentricity']=np.array(params['eccentricity'])
-    params['inclination']=np.array(params['inclination'])*params['inclination'].unit
-    params['longitude']=np.array(params['longitude'])*params['longitude'].unit
-    params['mass_primary']=np.array(params['mass_primary'])*params['mass_primary'].unit
-    params['mass_ratio']=np.array(params['mass_ratio'])
-    params['period']=np.array(params['period'])*params['period'].unit
-
-    if np.size(f_period)==1:
-        f_period=np.array([f_period]).reshape(1)
-    if np.size(params['eccentricity'])==1:
-        params['eccentricity']=np.full(len(f_period),np.array(params['eccentricity']).reshape(1))
-    if np.size(params['inclination'])==1:
-        params['inclination']=np.full(len(f_period),np.array(params['inclination']).reshape(1))*params['inclination'].unit
-    if np.size(params['longitude'])==1:
-        params['longitude']=np.full(len(f_period),np.array(params['longitude']).reshape(1))*params['longitude'].unit
-    if np.size(params['mass_primary'])==1:
-        params['mass_primary']=np.full(len(f_period),np.array(params['mass_primary']).reshape(1))*params['mass_primary'].unit
-    if np.size(params['mass_ratio'])==1:
-        params['mass_ratio']=np.full(len(f_period),np.array(params['mass_ratio']).reshape(1))
-    if np.size(params['period'])==1:
-        params['period']=np.full(len(f_period),np.array(params['period']).reshape(1))*params['period'].unit
-
-    if not ((len(params['eccentricity'])==len(f_period))&(len(params['inclination'])==len(f_period))&(len(params['longitude'])==len(f_period))&(len(params['mass_primary'])==len(f_period))&(len(params['mass_ratio'])==len(f_period))&(len(params['period'])==len(f_period))):
-        raise ValueError("if input as lists or arrays with size>1, 'eccentricity', 'inclination', 'longitude', 'mass_primary', 'mass_ratio', 'period' must all be of same length.  If any are input as lists with one element, will be understood to apply to all times")
-            
-    g=4*np.pi**2*u.AU**3/u.yr**2/u.M_sun#keplerian units (AU, yr, Msun)
-
-    mass_secondary=params['mass_primary']*params['mass_ratio']
-    mass=params['mass_primary']+mass_secondary
-    semimajor_axis=(params['period']**2*g*mass/(4.*np.pi**2))**(1./3.) #AU, assuming period in yr and mass in Msun
-    #period=np.sqrt(params['semimajor_axis']**3/(params['mass_primary']+mass_secondary)) #yr, assuming semimajor axis in AU and mass in Msun
-    energy=-g*mass/2/semimajor_axis
-    angular_momentum=np.sqrt(g*mass*(1.-params['eccentricity']**2))
-    #function to solve for eta (eccentric anomaly, defined in Ch. 3.1 of Binney/Tremaine 2008) as a function of f_period=t/period
-    def find_eta(x,eccentricity,f_period):
-        return (x-eccentricity*np.sin(x))/2/np.pi-f_period
-
-    #compute eta (eccentric anomaly) according to f_period = t/period array
-    low=0.
-    high=2.*np.pi
+        return anisotropy(model=model,beta_0=params['beta_0'],beta_inf=params['beta_inf'],r_beta=params['r_beta'],n_beta=params['n_beta'],f_beta=f_beta,beta=beta)
     
-    f_period_eff=np.zeros(len(f_period ))
-    for i in range(0,len(f_period)):
-        f_period_eff[i]=np.modf(f_period[i])[0] #fraction of period after removing all completed periods (so eta remains within interval (0, 2pi))
-        
-    eta=np.zeros(len(f_period))
-    for i in range(0,len(f_period)):
-        eta[i]=scipy.optimize.brentq(find_eta,low,high,args=(params['eccentricity'][i],f_period_eff[i]))#this is eccentric anomaly
-    
-    #use Eq. 3.28a from Binney/Tremaine 2008 to calculate r as function of eta.  vector(r) = vector(r2) - vector(r1) represents separation between particles 1 and 2.
-    r=semimajor_axis*(1.-params['eccentricity']*np.cos(eta))# has same units as semi-major axis
-    #use Eq. 3.326 from Binney/Tremaine 2008 to convert eccentric anomaly into true anomaly theta.
-    theta=np.arccos((np.cos(eta)-params['eccentricity'])/(1.-params['eccentricity']*np.cos(eta)))
-    #if ((type(eta)==float)|(type(eta)==np.float64)|(type(eta)==np.float32)):
-        #if eta>=np.pi:
-            #theta=2.*np.pi-theta#fudge for quadrant problem
-    #else:
-    theta[eta>=np.pi]=2.*np.pi-theta[eta>=np.pi]#fudge for quadrant problem
-
-    #get velocity of reduced mass, AU/yr
-          
-    v=2*np.pi*semimajor_axis/params['period']*np.sqrt(2.*(1.+params['eccentricity']*np.cos(theta))/(1.-params['eccentricity']**2)-1.)
-    vr=2.*np.pi*semimajor_axis/params['period']*params['eccentricity']*np.sin(theta)/np.sqrt(1.-params['eccentricity']**2)
-    vtheta=2.*np.pi*semimajor_axis/params['period']*(1.+params['eccentricity']*np.cos(theta))/np.sqrt(1.-params['eccentricity']**2)
-                   
-    #get Cartesian coordinates of separation vector and velocity of reduced mass
-    x=r*np.cos(theta)
-    y=r*np.sin(theta)
-    vx=vr*np.cos(theta)-vtheta*np.sin(theta)
-    vy=vr*np.sin(theta)+vtheta*np.cos(theta)
-    
-    #transform r and v into position and velocity vectors (and x,y components) for real particles 1 and 2
-    if len(np.where(params['mass_ratio']>1)[0])>0:
-        raise ValueError('must have mass_primary > mass_secondary')
-    
-    trans1,trans2=-params['mass_ratio']/(1.+params['mass_ratio']),1./(1.+params['mass_ratio'])
-    
-    r1,r2=trans1*r,trans2*r #AU
-    v1,v2=trans1*v,trans2*v #AU/yr
-                   
-    x1,y1=trans1*x,trans1*y #AU
-    vx1,vy1=trans1*vx,trans1*vy #AU/yr
-                   
-    x2,y2=trans2*x,trans2*y #AU
-    vx2,vy2=trans2*vx,trans2*vy #AU/yr
-
-    z,vz=x-x,x-x #orbit is confined to xy plane
-
-    r_xyz=np.array((x,y,z)).T*r.unit
-    r_sph=np.array((r,theta,z)).T
-    v_xyz=np.array((vx,vy,z)).T*v.unit
-    v_sph=np.array((vr,vtheta,vz)).T
-    r1_xyz=np.array((x1,y1,z)).T*r.unit
-    v1_xyz=np.array((vx1,vy1,z)).T*v.unit
-    r2_xyz=np.array((x2,y2,z)).T*r.unit
-    v2_xyz=np.array((vx2,vy2,vz)).T*v.unit
-
-    r_obs_xyz=np.zeros(np.shape(r_xyz))*r.unit
-    r1_obs_xyz=np.zeros(np.shape(r_xyz))*r.unit
-    r2_obs_xyz=np.zeros(np.shape(r_xyz))*r.unit
-    v_obs_xyz=np.zeros(np.shape(r_xyz))*v.unit
-    v1_obs_xyz=np.zeros(np.shape(r_xyz))*v.unit
-    v2_obs_xyz=np.zeros(np.shape(r_xyz))*v.unit
-    
-    if 'inclination' in params:
-
-        rot_matrix=[]
-        
-        rot_alpha=params['longitude'].to(u.rad).value #rotation about z axis, in direction of arc from +x to +y (radians)
-        rot_beta=0. #rotation about y axis, in direction of arc from +z to +x (radians)
-        rot_gamma=params['inclination'].to(u.rad).value #rotation about x axis, in direction of arc from +y to +z (radians)
-
-        if ((len(params['longitude'])!=len(f_period))|(len(params['inclination'])!=len(f_period))):
-            raise ValueError("'inclination' and 'longitude' must have same length as 'f_period' array")
-        for i in range(0,len(params['longitude'])):
-            rot_matrix.append(get_rot_matrix(rot_alpha[i],rot_beta,rot_gamma[i]))
-
-        for i in range(0,len(rot_matrix)):
-            r_obs_xyz.value[i]=rot_matrix[i].apply(r_xyz.value[i])
-            r1_obs_xyz.value[i]=rot_matrix[i].apply(r1_xyz.value[i])
-            r2_obs_xyz.value[i]=rot_matrix[i].apply(r2_xyz.value[i])    
-            v_obs_xyz.value[i]=rot_matrix[i].apply(v_xyz.value[i])
-            v1_obs_xyz.value[i]=rot_matrix[i].apply(v1_xyz.value[i])
-            v2_obs_xyz.value[i]=rot_matrix[i].apply(v2_xyz.value[i])
-
-    return orbit_2body(semimajor_axis=semimajor_axis,eccentricity=params['eccentricity'],mass_primary=params['mass_primary'],mass_secondary=mass_secondary,energy=energy,angular_momentum=angular_momentum,inclination=params['inclination'],longitude=params['longitude'],f_period=f_period,time=f_period*params['period'],period=params['period'],eta=eta,theta=theta,r_xyz=r_xyz,r_sph=r_sph,v_xyz=v_xyz,v_sph=v_sph,r1_xyz=r1_xyz,v1_xyz=v1_xyz,r2_xyz=r2_xyz,v2_xyz=v2_xyz,r_obs_xyz=r_obs_xyz,r1_obs_xyz=r1_obs_xyz,r2_obs_xyz=r2_obs_xyz,v_obs_xyz=v_obs_xyz,v1_obs_xyz=v1_obs_xyz,v2_obs_xyz=v2_obs_xyz,rot_matrix=rot_matrix)
-
-def sample_normal_truncated(**params):
-    if not 'size' in params:
-        params['size']=1
-    if not 'min_value' in params:
-        params['min_value']=-np.inf
-    if not 'max_value' in params:
-        params['max_value']=np.inf
-    if not 'loc' in params:
-        params['loc']=0.
-    if not 'scale' in params:
-        params['scale']=1.
-
-    return sampler.normal_truncated(params['size'],params['min_value'],params['max_value'],params['loc'],params['scale'])
-
-def sample_inclination(**params):
-    if not 'size' in params:
-        params['size']=1
-    ran1=np.random.uniform(size=params['size'],low=0.,high=1.)
-    ran2=np.random.uniform(size=params['size'],low=0.,high=1.)
-    inclination=np.arccos((1.-2*ran1))
-    change=np.where(ran2>0.5)[0]
-    inclination[change]=inclination[change]+np.pi
-    return inclination
-
-def get_rot_matrix(alpha,beta,gamma):
-    #alpha is rotation about z axis, from +x to +y ('yaw' in radians)
-    #beta is rotation about y axis, from +z to +x ('pitch' in radians)
-    #gamma is rotation about x axis, from +y to +z ('roll' in radians)
-    #rotations are performed in the order gamma, beta, alpha
-    r11=np.cos(alpha)*np.cos(beta)
-    r12=np.cos(alpha)*np.sin(beta)*np.sin(gamma)-np.sin(alpha)*np.cos(gamma)
-    r13=np.cos(alpha)*np.sin(beta)*np.cos(gamma)+np.sin(alpha)*np.sin(gamma)
-    r21=np.sin(alpha)*np.cos(beta)
-    r22=np.sin(alpha)*np.sin(beta)*np.sin(gamma)+np.cos(alpha)*np.cos(gamma)
-    r23=np.sin(alpha)*np.sin(beta)*np.cos(gamma)-np.cos(alpha)*np.sin(gamma)
-    r31=-np.sin(beta)
-    r32=np.cos(beta)*np.sin(gamma)
-    r33=np.cos(beta)*np.cos(gamma)
-    return Rotation.from_matrix([[r11,r12,r13],[r21,r22,r23],[r31,r32,r33]])
-
-def sample_combine(sample_r2d,sample_imf,sample_binary,sample_orbit):
-
-    class sample_final:
-        
-        def __init__(self,r_xyz=None,mass=None,item=None,companion=None):
-            self.r_xyz=r_xyz #AU
-            self.mass=mass
-            self.item=item
-            self.companion=companion
-
-    r_xyz,mass,item,companion=[],[],[],[]
-    j=0
-    for i in range(0,len(sample_r2d.r_xyz)):
-        if sample_binary[i]:
-            if sample_imf.mass[i] != sample_orbit.mass_primary[j]:
-                raise ValueError ("problem with sample_final masses")
-            
-            r_xyz.append((sample_r2d.r_xyz[i]+sample_orbit.r1_obs_xyz[j]).tolist())
-            mass.append(sample_orbit.mass_primary[j])
-            item.append('primary')
-            companion.append(i+j+1)
-            
-            r_xyz.append((sample_r2d.r_xyz[i]+sample_orbit.r2_obs_xyz[j]).tolist())
-            mass.append(sample_orbit.mass_secondary[j])
-            item.append('secondary')
-            companion.append(i+j)
-
-            j+=1
-            
-        else:
-            
-            r_xyz.append(sample_r2d.r_xyz[i].tolist())
-            mass.append(sample_imf.mass[i])
-            item.append('single')
-            companion.append(-999)
-            
-    return sample_final(r_xyz=np.array(r_xyz),mass=np.array(mass),item=np.array(item),companion=np.array(companion,dtype=int))
-
-def add_binaries_physical(object_xyz,mass_primary,**params):
-    
-    class r2d_with_binaries:    
-        def __init__(self,r_xyz=None,mass=None,item=None,companion=None,binary_model=None):
-            self.r_xyz=r_xyz
-            self.mass=mass
-            self.item=item
-            self.companion=companion
-            self.binary_model=binary_model
-
-    if not 'binary_model' in params:
-        params['binary_model']='user'
-    if not 'f_binary' in params:
-        params['f_binary']=1.
-    if not 'm_min' in params:
-        params['m_min']=np.min(mass_primary.value)
-    if (('mass_secondary' in params)&('mass_ratio' in params)):
-        raise ValueError('cannot specify both mass_seconary and mass_ratio')
-    if 'mass_secondary' in params:
-        params['mass_ratio']=params['mass_secondary']/mass_primary
-    elif 'mass_ratio' in params:
-        params['mass_secondary']=mass_primary*params['mass_ratio']
-        
-    n_object=len(object_xyz)
-    
-    is_binary=np.zeros(n_object,dtype='bool')
-    is_binary[np.random.uniform(size=n_object,low=0.,high=1.)<=params['f_binary']]=True
-    
-    n_binary=is_binary.sum()
-    n_single=n_object-n_binary
-
-    if params['binary_model']=='Raghavan2010':
-
-        mass_ratio=np.random.uniform(size=n_object,low=params['m_min']/mass_primary.value,high=1.) #array of m_secondary / m_primary, sampled from uniform distribution subject to constraint M_secondary > M_min
-        period=10.**sample_normal_truncated(size=n_object,loc=5.03,scale=2.28,min_value=-np.inf,max_value=np.inf)/364.25*u.yr #array of orbital period (years), sampled from truncated log-normal distribution
-        eccentricity=np.random.uniform(size=n_object,low=0.,high=1.)
-        #eccentricity=10.**sample_normal_truncated(size=n_binary,loc=-0.3,scale=1.,min_value=-np.inf,max_value=0.) #array of orbital eccentricity, sampled from truncated log-normal distribution
-        eccentricity[period*365.24<12.*u.day]=0. #eccentricity=0 for P<12 days
-
-    elif params['binary_model']=='DM91':
-        mass_ratio=sample_normal_truncated(size=n_object,loc=0.23,scale=0.42,min_value=params['m_min']/mass_primary.value,max_value=1.)
-        period=10.**sample_normal_truncated(size=n_object,loc=4.8,scale=2.3,min_value=-np.inf,max_value=np.inf)/364.25*u.yr #array of orbital period (years), sampled from truncated log-normal distribution
-        eccentricity=sample_normal_truncated(size=n_object,loc=0.31,scale=0.17,min_value=0.,max_value=1.)
-        long_period=np.where(period*365.24>1000.*u.day)[0]
-        eccentricity_thermal=sampler.uni(size=len(long_period)) #sample thermal distribution for long periods, this is equivalent to sampling radial coordinate of uniform 2D distribution
-        eccentricity[long_period]=eccentricity_thermal
-        eccentricity[period*365.24<12.*u.day]=0. #eccentricity=0 for P<12 days
-
     else:
-        mass_ratio=params['mass_ratio']
-        period=params['period']
-        eccentricity=params['eccentricity']
-        
-    f_period=np.random.uniform(size=n_object,low=0.,high=1.) #array of orbital phase, time / period
-    inclination=sample_inclination(size=n_object)*u.rad #array of inclination angle (radians), inclination=0 for observer along +z axis, inclination=pi/2 for observer in xy plane, allowed from 0 to 2*pi to allow for full range of parity.
-    longitude=np.random.uniform(size=n_object,low=0,high=2.*np.pi)*u.rad #array of longitude of ascending node (radians), longitude=0 if observer is along +x axis, longitude=pi/2 if observer is along +y axis
+        raise TypeError('anisotropy model not properly specified!')
 
-    orbit_snapshot=sample_orbit_2body(f_period,period=period,eccentricity=eccentricity,mass_primary=mass_primary,mass_ratio=mass_ratio,longitude=longitude,inclination=inclination)
 
-    r_xyz=np.zeros((n_object+n_binary,3))*object_xyz[0].unit
-    mass=np.zeros(n_object+n_binary)*orbit_snapshot.mass_primary[0].unit
-    item=np.zeros(n_object+n_binary,dtype='int')
-    companion=np.zeros(n_object+n_binary,dtype='int')
+def get_rhalf(model,r_scale,**params):
 
-    j=0
-    
-    for i in range(0,len(object_xyz)):
-        
-        if is_binary[i]:
-
-            if np.abs(1.-mass_primary[i]/orbit_snapshot.mass_primary[i])>0.01:
-                raise ValueError('problem with binary mass samples!')
-            r1=(object_xyz[i]+orbit_snapshot.r1_obs_xyz[i]).to(object_xyz[0].unit)
-            r2=(object_xyz[i]+orbit_snapshot.r2_obs_xyz[i]).to(object_xyz[0].unit)
-            
-            r_xyz.value[j]=r1.value
-            mass.value[j]=orbit_snapshot.mass_primary.value[i]
-            item[j]=1
-            companion[j]=j+1
-            j+=1
-            
-            r_xyz.value[j]=r2.value
-            mass.value[j]=orbit_snapshot.mass_secondary.value[i]
-            item[j]=2
-            companion[j]=j-1
-            j+=1
-            
+    if model=='plum':
+        rhalf_2d=r_scale
+        rhalf_3d=1.30476909*r_scale
+        nu0=3*params['bigsigma0']/4/r_scale
+        ntot=(1.-params['ellipticity'])*np.pi*r_scale**2*params['bigsigma0']
+    elif model=='exp':
+        rhalf_2d=1.67835*r_scale
+        rhalf_3d=2.22352*r_scale
+        nu0=params['bigsigma0']/np.pi/r_scale
+        ntot=(1.-params['ellipticity'])*2.*np.pi*r_scale**2*params['bigsigma0']
+    elif model=='a2bg':
+        def rootfind_2bg_2d(x,beta,gamma):
+            return 0.5-np.sqrt(np.pi)*scipy.special.gamma((beta-gamma)/2)/2/scipy.special.gamma(beta/2)/scipy.special.gamma((3-gamma)/2)*x**(3-beta)*scipy.special.hyp2f1((beta-3)/2,(beta-gamma)/2,beta/2,-1/x**2)
+        def rootfind_2bg_3d(x,beta,gamma):
+            return -0.5+2*scipy.special.gamma((beta-gamma)/2)/scipy.special.gamma((beta-3)/2)/scipy.special.gamma((3-gamma)/2)/(3-gamma)*x**(3-gamma)*scipy.special.hyp2f1((3-gamma)/2,(beta-gamma)/2,(5-gamma)/2,-x**2)
+        low0=1.e-20
+        high0=1.e+20
+        if ((type(r_scale) is float)|(type(r_scale) is np.float64)):
+            rhalf_2d=r_scale*scipy.optimize.brentq(rootfind_2bg_2d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=1000,full_output=False,disp=True)
+            rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_2bg_3d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
         else:
-            
-            r_xyz.value[j]=object_xyz[i].value
-            mass.value[j]=mass_primary.value[i]
-            item[j]=0
-            companion[j]=-999
-            j+=1
-            
-    return r2d_with_binaries(r_xyz=np.array(r_xyz)*r1.unit,mass=np.array(mass),item=np.array(item),companion=np.array(companion,dtype=int),binary_model=params['binary_model'])
+            rhalf_2d=[]
+            rhalf_3d=[]
+            for i in range(0,len(r_scale)):
+                rhalf_2d.append(r_scale[i]*scipy.optimize.brentq(rootfind_2bg_2d,low0,high0,args=(params['beta'][i],params['gamma'][i]),xtol=1.e-12,rtol=1.e-6,maxiter=1000,full_output=False,disp=True))
+                rhalf_3d.append(r_scale[i]*scipy.optimize.brentq(rootfind_2bg_3d,low0,high0,args=(params['beta'][i],params['gamma'][i]),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True))
+            rhalf_2d=np.array(rhalf_2d)
+            rhalf_3d=np.array(rhalf_3d)
+        nu0=params['bigsigma0']*scipy.special.gamma(params['beta']/2)/np.sqrt(np.pi)/r_scale/scipy.special.gamma((params['beta']-1)/2)
+        ntot=(1.-params['ellipticity'])*4.*np.sqrt(np.pi)*r_scale**2*params['bigsigma0']/(params['beta']-3)*scipy.special.gamma((3-params['gamma'])/2)*scipy.special.gamma(params['beta']/2)/scipy.special.gamma((params['beta']-params['gamma'])/2)
 
-def add_binaries_func(object_xyz,**params):
-    
-    class r2d_with_binaries_func:    
-        def __init__(self,r_xyz=None,mass=None,item=None,companion=None,separation_func=None,projected=None):
-            self.r_xyz=r_xyz
-            self.mass=mass
-            self.item=item
-            self.companion=companion
-            self.separation_func=separation_func
-            self.projected=projected
+    elif model=='abg':
+        def rootfind_abg_2d(x,alpha,beta,gamma):
+            return np.nan#not computed yet, projection of abg model requires numerical integration
+        def rootfind_abg_3d(x,alpha,beta,gamma):
+            a=(3.-gamma)/alpha
+            b=(beta-gamma)/alpha
+            c=(3.-gamma+alpha)/alpha
+            d=(beta-3.)/alpha
+            z1=-x**alpha
+            return -0.5+(x**(3.-gamma))*scipy.special.hyp2f1(a,b,c,z1)*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(c)
+        low0=1.e-20
+        high0=1.e+20
+        if ((type(r_scale) is float)|(type(r_scale) is np.float64)):
+            rhalf_2d=np.nan#not computed yet, projection of abg model requires numerical integration
+            rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_abg_3d,low0,high0,args=(params['alpha'],params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
+        else:
+            rhalf_2d=[]
+            rhalf_3d=[]
+            for i in range(0,len(r_scale)):
+                rhalf_2d.append(np.nan)#not computed yet, projection of abg model requires numerical integration
+                rhalf_3d.append(r_scale[i]*scipy.optimize.brentq(rootfind_abg_3d,low0,high0,args=(params['alpha'],params['beta'][i],params['gamma'][i]),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True))
+            rhalf_2d=np.array(rhalf_2d)
+            rhalf_3d=np.array(rhalf_3d)
+        nu0=np.nan#not yet computed
+        ntot=np.nan#not yet computed
 
-    if not 'f_binary' in params:
-        params['f_binary']=1.
-    if (('mass_secondary' in params)&('mass_ratio' in params)):
-        raise ValueError('cannot specify both mass_seconary and mass_ratio')
-    if 'mass_secondary' in params:
-        params['mass_ratio']=params['mass_secondary']/params['mass_primary']
-    elif 'mass_ratio' in params:
-        params['mass_secondary']=params['mass_primary']*params['mass_ratio']
-
-    if not(type(object_xyz)==ap.units.quantity.Quantity): #if input is not a quantity, make it a dimensionless quantity
-        object_xyz=object_xyz*u.AU/u.AU
-    if not(type(params['s_min'])==ap.units.quantity.Quantity):
-        params['s_min']=params['s_min']*u.AU/u.AU
-    if not(type(params['s_max'])==ap.units.quantity.Quantity):
-        params['s_max']=params['s_max']*u.AU/u.AU
-        
-    n_object=len(object_xyz)
-    
-    is_binary=np.zeros(n_object,dtype='bool')
-    is_binary[np.random.uniform(size=n_object,low=0.,high=1.)<=params['f_binary']]=True
-    
-    n_binary=is_binary.sum()
-    n_single=n_object-n_binary
-
-    if params['separation_func']=='opik':
-        r,k=sampler.opik(len(object_xyz),params['s_min'].to(params['s_max'].unit).value,params['s_max'].value)
-        r=r*params['s_max'].unit
-
-    if params['separation_func']=='pl':
-        r,k=sampler.pl(len(object_xyz),params['s_min'].to(params['s_max'].unit).value,params['s_max'].value,params['alpha'])
-        r=r*params['s_max'].unit
-        
-    if params['separation_func']=='bpl':
-        if not(type(params['s_break'])==ap.units.quantity.Quantity):
-            params['s_break']=params['s_break']*params['s_max'].unit
-        r,k1,k2=sampler.bpl(len(object_xyz),params['s_min'].to(params['s_max'].unit).value,params['s_max'].value,params['alpha1'],params['alpha2'],params['s_break'].to(params['s_max'].unit).value)
-        r=r*params['s_max'].unit
-
-    if params['separation_func']=='lognormal':
-        r=10.**sampler.normal_truncated(len(object_xyz),np.log10((params['s_min'].to(params['s_max'].unit)).value),np.log10(params['s_max'].value),np.log10((params['loc']).to(params['s_max'].unit).value),np.log10((params['scale']).to(params['s_max'].unit).value))
-        r=r*params['s_max'].unit
-                                        
-    longitude=np.random.uniform(size=n_object,low=0,high=2.*np.pi)*u.rad
-    if params['projected']:
-        inclination=np.zeros(len(object_xyz),dtype=float)*u.rad #if separation function is projected, view binary orbit face-on
+    elif model=='captured_truncated':
+        return
     else:
-        inclination=sample_inclination(size=len(object_xyz))*u.rad
+        raise ValueError('error in model specification')
+    return rhalf_2d,rhalf_3d,nu0,ntot
+    
+def integrate(bigx,dmhalo,tracer,anisotropy,**params):
+    if 'component' not in params:
+        params['component']=['los','rad','tan']#default is to calculate all three components
+    if not 'upper_limit' in params:#default upper limit is infinity, common alternative is dmhalo.r_triangle
+        params['upper_limit']=np.inf
+    if not 'epsrel' in params:
+        params['epsrel']=1.49e-8
+    if not 'epsabs' in params:
+        params['epsabs']=1.49e-8
+    if not 'limit' in params:
+        params['limit']=50
         
-    x=r#*np.cos(theta) #x component of separation vector in orbital plane, effectively assume theta=0 (pericenter, if this were orbit calculation)
-    y=r-r#sep*np.sin(theta) # y component of separation vector in orbital plane, effectively assume theta=0 (pericenter, if this were orbit calculation)
-    z=r-r
+    def integrand1(x_halo,dmhalo,tracer,anisotropy):
+        x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
+        x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale# r / r_scale
+        mass=dmhalo.func_mass(x_halo)+tracer.func_number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
+        return mass*tracer.func_density(x_tracer)*anisotropy.f_beta(x_beta)/x_halo**2
+    
+    def integrand_los(x_halo,dmhalo,tracer,anisotropy):
+        x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
+        min0=x_halo
+        max0=params['upper_limit']
+        int1=scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])
+        return (1.-anisotropy.beta(x_beta)*(bigx/x_halo)**2)/np.sqrt(1.-(bigx/x_halo)**2)/anisotropy.f_beta(x_beta)*int1[0]
+
+    def integrand_rad(x_halo,dmhalo,tracer,anisotropy):
+        x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
+        min0=x_halo
+        max0=params['upper_limit']
+        int1=scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])
+        return (1.-anisotropy.beta(x_beta)+anisotropy.beta(x_beta)*(bigx/x_halo)**2)/np.sqrt(1.-(bigx/x_halo)**2)/anisotropy.f_beta(x_beta)*int1[0]
+
+    def integrand_tan(x_halo,dmhalo,tracer,anisotropy):
+        x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
+        min0=x_halo
+        max0=params['upper_limit']
+        int1=scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])
+        return (1.-anisotropy.beta(x_beta))/np.sqrt(1.-(bigx/x_halo)**2)/anisotropy.f_beta(x_beta)*int1[0]
+    
+    min0=bigx
+    max0=params['upper_limit']
+    
+    if min0==max0:
+        bigsigmasigmalos2=0.
+        bigsigmasigmarad2=0.
+        bigsigmasigmatan2=0.
         
-    trans1,trans2=-params['mass_ratio']/(1.+params['mass_ratio']),1./(1.+params['mass_ratio'])    
-    x1,y1=trans1*x,trans1*y
-    x2,y2=trans2*x,trans2*y
-
-    r_xyz=np.array((x,y,z)).T*r.unit
-    r1_xyz=np.array((x1,y1,z)).T*r.unit
-    r2_xyz=np.array((x2,y2,z)).T*r.unit
-
-    r_obs_xyz=np.zeros(np.shape(r_xyz))*r.unit
-    r1_obs_xyz=np.zeros(np.shape(r_xyz))*r.unit
-    r2_obs_xyz=np.zeros(np.shape(r_xyz))*r.unit
-    
-    rot_matrix=[]
+    else:
         
-    rot_alpha=longitude.to(u.rad).value #rotation about z axis, in direction of arc from +x to +y (radians)
-    rot_beta=0. #rotation about y axis, in direction of arc from +z to +x (radians)
-    rot_gamma=inclination.to(u.rad).value #rotation about x axis, in direction of arc from +y to +z (radians)
+        if 'los' in params['component']:
+            bigsigmasigmalos2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu0
+        if 'rad' in params['component']:
+            bigsigmasigmarad2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_rad,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_rad(X) * Sigma(X) / nu0
+        if 'tan' in params['component']:
+            bigsigmasigmatan2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu0
+            
+    return bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2
 
-    for i in range(0,len(longitude)):
-        rot_matrix.append(get_rot_matrix(rot_alpha[i],rot_beta,rot_gamma[i]))
-
-    for i in range(0,len(rot_matrix)):
-        r_obs_xyz.value[i]=rot_matrix[i].apply(r_xyz.value[i])
-        r1_obs_xyz.value[i]=rot_matrix[i].apply(r1_xyz.value[i])
-        r2_obs_xyz.value[i]=rot_matrix[i].apply(r2_xyz.value[i])    
-
-    r_xyz=np.zeros((n_object+n_binary,3))*object_xyz[0].unit
-    mass=np.zeros(n_object+n_binary)*params['mass_primary'][0].unit
-    item=np.zeros(n_object+n_binary,dtype='int')
-    companion=np.zeros(n_object+n_binary,dtype='int')
-
-    j=0
-    
-    for i in range(0,len(object_xyz)):
+def integrate_isotropic(bigx,dmhalo,tracer,**params):
+    if not 'upper_limit' in params:#default upper limit is infinity, common alternative is dmhalo.r_triangle
+        params['upper_limit']=np.inf
+    if not 'epsrel' in params:
+        params['epsrel']=1.49e-8
+    if not 'epsabs' in params:
+        params['epsabs']=1.49e-8
+    if not 'limit' in params:
+        params['limit']=50
         
-        if is_binary[i]:
-
-            if np.abs(1.-params['mass_primary'][i]/params['mass_primary'][i])>0.01:
-                raise ValueError('problem with binary mass samples!')
-            r1=(object_xyz[i]+r1_obs_xyz[i]).to(object_xyz[0].unit)
-            r2=(object_xyz[i]+r2_obs_xyz[i]).to(object_xyz[0].unit)
-            
-            r_xyz.value[j]=r1.value
-            mass.value[j]=params['mass_primary'].value[i]
-            item[j]=1
-            companion[j]=j+1
-            j+=1
-            
-            r_xyz.value[j]=r2.value
-            mass.value[j]=params['mass_secondary'].value[i]
-            item[j]=2
-            companion[j]=j-1
-            j+=1
-            
-        else:
-            
-            r_xyz.value[j]=object_xyz[i].value
-            mass.value[j]=params['mass_primary'].value[i]
-            item[j]=0
-            companion[j]=-999
-            j+=1
-            
-    return r2d_with_binaries_func(r_xyz=np.array(r_xyz)*r1.unit,mass=np.array(mass),item=np.array(item),companion=np.array(companion,dtype=int),separation_func=params['separation_func'],projected=params['projected'])
-
-def binary_blend(r2d_wb,mag,Mbol_sun,resolution_limit_physical,**params):
+    def integrand1(x_halo,dmhalo,tracer):
+        x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale# r / r_scale
+        mass=dmhalo.func_mass(x_halo)+tracer.func_number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
+        return np.sqrt(1.-(bigx/x_halo)**2)*mass*tracer.func_density(x_tracer)/x_halo
     
-    class r2d_binary_blend:
-        def __init__(self,r_xy=None,mag=None,blend=None):
-            self.r_xy=r_xy
-            self.mag=mag
-            self.blend=blend
+    min0=bigx
+    max0=params['upper_limit']
+    return 2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu0
 
-    xy=np.c_[r2d_wb.r_xyz.T[0],r2d_wb.r_xyz.T[1]]
-    mass=np.c_[r2d_wb.mass,r2d_wb.mass]
+def projected_virial(x_halo,dmhalo,tracer):#computes integral for Wlos from Errani etal (2018)
+    x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale
+    totalmass=dmhalo.func_mass(x_halo)+tracer.func_number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
+    return x_halo*tracer.func_density(x_tracer)*totalmass
 
-    tree=scipy.spatial.KDTree(xy)
-    #tree_single=scipy.spatial.KDTree(xy[r2d_wb.item==0])
-    #tree_binary=scipy.spatial.KDTree(xy[r2d_wb.item>0])
-    query=tree.query(xy,k=2)
-    #query_single=tree_single.query(xy[r2d_wb.item==0],k=2)
-    #query_binary=tree_binary.query(xy[r2d_wb.item>0],k=2)
-    nn=query[0].T[1]
-    #nn_single=query_single[0].T[1]
-    #nn_binary=query_binary[0].T[1]
+def get_virial(dmhalo,tracer,**params):
+    if not 'epsrel' in params:
+        params['epsrel']=1.e-13
+    if not 'epsabs' in params:
+        params['epsabs']=0.
+    if not 'limit' in params:
+        params['limit']=500
 
-    nn_partner=query[1].T[1]
-
-    lum=10.**(-(mag-Mbol_sun)/2.5)
-    
-    unresolved=np.where(nn*xy.unit<resolution_limit_physical)[0]
-    
-    xy[unresolved]=(mass[unresolved]*xy[unresolved]+mass[nn_partner[unresolved]]*xy[nn_partner[unresolved]])/(mass[unresolved]+mass[nn_partner[unresolved]]) #replace position with mass-weighted mean position of unresolved partners
-    lum[unresolved]=lum[unresolved]+lum[nn_partner[unresolved]] #replace luminosity with sum of luminosities of unresolved partners
-    mag[unresolved]=Mbol_sun-2.5*np.log10(lum[unresolved]) #magnitude corresponding to sum of luminoisities
-
-    keep=np.full(len(xy),True,dtype='bool')
-    blend=np.full(len(xy),False,dtype='bool')
-    blend[unresolved]=True
-    for i in range(0,len(unresolved)):
-        if keep[unresolved[i]]:
-            keep[nn_partner[unresolved[i]]]=False
-            
-    return r2d_binary_blend(r_xy=xy[keep],mag=mag[keep],blend=blend[keep])
+    min0=0.
+    max0=np.inf
+    val1=scipy.integrate.quad(projected_virial,min0,max0,args=(dmhalo,tracer),epsabs=params['epsabs'],epsrel=params['epsrel'],limit=params['limit'])
+    vvar=val1[0]*4.*np.pi*g/3.*dmhalo.m_triangle*(dmhalo.r_triangle**2)/tracer.ntotnorm/tracer.r_scale**3
+    mu=g*(dmhalo.func_mass(tracer.rhalf_2d/dmhalo.r_triangle)+tracer.func_number(tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon)*dmhalo.m_triangle/tracer.rhalf_2d/vvar
+    return vvar,mu
 
