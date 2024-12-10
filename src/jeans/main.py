@@ -540,9 +540,11 @@ def get_rhalf(model,r_scale,**params):
         raise ValueError('error in model specification')
     return rhalf_2d,rhalf_3d,nu0,ntot
     
+
 def integrate(bigx,dmhalo,tracer,anisotropy,**params):
+    
     if 'component' not in params:
-        params['component']=['los','rad','tan']#default is to calculate all three components
+        params['component']=['los','rad','tan','3d']#default is to calculate all three projected components and both 3D components (3D angular components are equal)
     if not 'upper_limit' in params:#default upper limit is infinity, common alternative is dmhalo.r_triangle
         params['upper_limit']=np.inf
     if not 'epsrel' in params:
@@ -551,6 +553,14 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
         params['epsabs']=1.49e-8
     if not 'limit' in params:
         params['limit']=50
+
+    class jeans_integral:
+        def __init__(self,bigsigmasigmalos2=None,bigsigmasigmarad2=None,bigsigmasigmatan2=None,nusigmarad2=None,nusigmatan2=None):
+            self.bigsigmasigmalos2=bigsigmasigmalos2
+            self.bigsigmasigmarad2=bigsigmasigmarad2
+            self.bigsigmasigmatan2=bigsigmasigmatan2
+            self.nusigmarad2=nusigmarad2
+            self.nusigmatan2=nusigmatan2
         
     def integrand1(x_halo,dmhalo,tracer,anisotropy):
         x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
@@ -581,14 +591,21 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     
     min0=bigx
     max0=params['upper_limit']
-    
+
     if min0==max0:
         bigsigmasigmalos2=0.
         bigsigmasigmarad2=0.
         bigsigmasigmatan2=0.
+        nusigmarad2=0.
+        nusigmatan2=0.
         
     else:
         
+        if '3d' in params['component']:
+            x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
+            nusigmarad2=g*dmhalo.m_triangle/dmhalo.r_triangle/anisotropy.f_beta(x_beta)*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_r(x) * nu(x) / nu0, sigma_r(x) is 3D radial velocity dispersion at x=r/r_triangle
+            nusigmatan2=nusigmar2*(1.-anisotropy.beta(x_beta))#sigma^2_t(x) * nu(x) / nu0, sigma_t(x) is 3D tangential velocity dispersion at x=r/r_triangle, equals both the theta component and the phi component
+    
         if 'los' in params['component']:
             bigsigmasigmalos2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu0
         if 'rad' in params['component']:
@@ -596,7 +613,7 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
         if 'tan' in params['component']:
             bigsigmasigmatan2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu0
             
-    return bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2
+    return jeans_integral(bigsigmasigmalos2=bigsigmasigmalos2,bigsigmasigmarad2=bigsigmasigmarad2,bigsigmasigmatan2=bigsigmasigmatan2,nusigmarad2=nusigmarad2,nusigmatan2=nusigmatan2)
 
 def integrate_isotropic(bigx,dmhalo,tracer,**params):
     if not 'upper_limit' in params:#default upper limit is infinity, common alternative is dmhalo.r_triangle
