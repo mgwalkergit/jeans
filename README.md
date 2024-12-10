@@ -36,7 +36,7 @@ The Plummer model is a special case of the 'abg' model, with $(\alpha,\beta,\gam
 
 The 'a2bg' model is a special case of the 'abg' model, with $\alpha=2$, but can be called directly.
 
-The exponential model is defined in terms of projected density, $\Sigma(R)=\Sigma_0\exp(-R/R_e)$.
+The exponential model is defined in terms of projected density, $\Sigma(R)=\Sigma_0\exp(-R/r_s)$.
 
 # Available Models for velocity dispersion anisotropy of the tracer component
 
@@ -54,7 +54,7 @@ For the core-NFW-tides halo, e.g., this would become
 
 ```cnfwt=jeans.get_dmhalo('cnfwt',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10,r_core=0.3,n_core=1.,r_tide=1.,delta=5.)```
 
-##Note that for cNFW and cNFWt models, $r_{\rm c}$ and $r_{\rm t}$ must be specified in units of $r_{\triangle}$.##
+***Note that for cNFW and cNFWt models, $r_{\rm c}$ and $r_{\rm t}$ must be specified in units of $r_{\triangle}$.***
 
 To create an object representing, e.g., a tracer component following a Plummer profile with scale radius 100 pc (units of pc assumed, for compatibility with DM halos), total luminosity 1000 $L_{\odot}$, and tracer mass-to-light ratio $\Upsilon=1$ (solar units):
 
