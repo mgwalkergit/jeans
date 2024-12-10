@@ -38,9 +38,10 @@ The exponential model is defined in terms of projected density, $\Sigma(R)=\Sigm
 
 # Available Models for velocity dispersion anisotropy of the tracer component
 
-The only model currently implemented is that of Read et al. (arXiv:1805.06934): $\beta(r)\equiv 1-\sigma^2_{\rm t}/\sigma^2_{\rm r}=\beta_0+(\beta_{\infty}-\beta_0)/(1+(r/r_{\beta})^{-n})$, where $\sigma_{\rm r}$ is the radial velocity dispersion and $\sigma_{\rm t}=\sigma_{\theta}=\sigma_{\phi}$ is the tangential component (the two angular components have equal magnitude in the absence of rotation).  
+The only model currently implemented is that of Read et al. (arXiv:1805.06934): $\beta(r)\equiv 1-\sigma^2_{\rm t}/\sigma^2_{\rm r}=\beta_0+(\beta_{\infty}-\beta_0)/(1+(r/r_{\beta})^{-n})$, where $\sigma_{\rm r}$ is the radial component of the velocity dispersion and $\sigma_{\rm t}=\sigma_{\theta}=\sigma_{\phi}$ is the tangential component (the two angular components have equal magnitude in the absence of rotation).  
 
 
+# Usage
 
 In order to create an object representing an NFW halo with overdensity parameter $\triangle=200$, halo mass given by $M_{\triangle}=1\times 10^{10}M_{\odot}$ and concentration $c_{\triangle}=r_{\triangle}/r_s=10$, where $M_{\triangle}\equiv M(r_{\triangle})$ is the mass enclosed within a sphere of radius $r_{\triangle}$ and the mean halo density within a sphere of radius $r_{\triangle}$ is $\triangle$ times the cosmological critical density given by $3H_0/(8\pi G)$, with $h\equiv H_0/100$ (km/s/Mpc)$^{-1}$:
 
