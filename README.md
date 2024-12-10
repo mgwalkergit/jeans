@@ -54,17 +54,25 @@ For the core-NFW-tides halo, e.g., this would become
 
 ```cnfwt=jeans.get_dmhalo('cnfwt',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10,r_core=0.3,n_core=1.,r_tide=1.,delta=5.)```
 
-##Note that for cNFW and cNFWt models, $r_{\rm c}$ and $r_{\rm t}$ are specified in units of $r_{\triangle}$.##
+##Note that for cNFW and cNFWt models, $r_{\rm c}$ and $r_{\rm t}$ must be specified in units of $r_{\triangle}$.##
 
 To create an object representing, e.g., a tracer component following a Plummer profile with scale radius 100 pc (units of pc assumed, for compatibility with DM halos), total luminosity 1000 $L_{\odot}$, and tracer mass-to-light ratio $\Upsilon=1$ (solar units):
 
 ```plum=jeans.get_tracer('plum',luminosity_tot=1000.,r_scale=100.,upsilon=1.)```
 
-The tracer object stores the input parameters as well as the normalization constants for 3D and (projected) 2D density profiles ('nu0' and 'sigma0', respectively), the number of tracer particles within a sphere of radius r_scale (normalized by nu0*r_scale**3, 'nscalenorm'), and within a sphere of radius infinity (normalized by nu0*r_scale**3, 'ntotnorm'), the 2D and 3D halflight radii ('rhalf_2d' and rhalf_3d') in units of pc, and functions for the 3D number density ('func_density'), 2D projected number density ('func_density_2d'), and cumulative number ('func_number').
+The tracer object stores the input parameters as well as the normalization constants for 3D and (projected) 2D density profiles ('nu0' and 'sigma0', respectively), the number of tracer particles within a sphere of radius r_scale (normalized by nu0 * r_scale^3, 'nscalenorm'), and within a sphere of radius infinity (normalized by nu0 * r_scale^3, 'ntotnorm'), the 2D and 3D halflight radii ('rhalf_2d' and rhalf_3d') in units of pc, and functions for the 3D number density ('func_density'), 2D projected number density ('func_density_2d'), and cumulative number ('func_number').
 
+For the 'abg' tracer model, this would become
 
+```a2bg=jeans.get_tracer('a2bg',luminosity_tot=1000.,r_scale=100.,upsilon=1.,alpha=1.6,beta=7.,gamma=0.4)```
 
+To create an object representing the tracer component's velocity dispersion anisotropy:
 
+```anisotropy=jeans.get_anisotropy('read',beta_0=-0.3,beta_inf=0.8,r_beta=1.,n_beta=1.)```
+
+##Note that $r_{\beta}$ must be specified in units of $r_{\rm scale}$, the scale radius assigned to the tracer population.##
+
+The anisotropy object stores the input parameters as well functions for the anisotropy profile ('beta') and the function $exp(2\int\frac{\beta}{r}dr)$ ('f_beta'), which appears in the Jeans equations.
 
 # Examples 
 
