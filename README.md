@@ -70,7 +70,7 @@ To create an object representing the tracer component's velocity dispersion anis
 
 ```anisotropy=jeans.get_anisotropy('read',beta_0=-0.3,beta_inf=0.8,r_beta=1.,n_beta=1.)```
 
-**Note that $r_{\beta}$ must be specified in units of $r_{\rm scale}$, the scale radius assigned to the tracer population.**
+***Note that $r_{\beta}$ must be specified in units of $r_{\rm scale}$, the scale radius assigned to the tracer population.***
 
 The anisotropy object stores the input parameters as well functions for the anisotropy profile ('beta') and the function $\exp(2\int\frac{\beta}{r}dr)$ ('f_beta'), which appears in the Jeans equations.
 
