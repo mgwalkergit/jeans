@@ -45,13 +45,15 @@ The only model currently implemented is that of Read et al. (arXiv:1805.06934): 
 
 In order to create an object representing, e.g., an NFW halo with overdensity parameter $\triangle=200$, halo mass given by $M_{\triangle}=1\times 10^{10}M_{\odot}$ and concentration $c_{\triangle}=r_{\triangle}/r_s=10$, where $M_{\triangle}\equiv M(r_{\triangle})$ is the mass enclosed within a sphere of radius $r_{\triangle}$ and the mean halo density within a sphere of radius $r_{\triangle}$ is $\triangle$ times the cosmological critical density given by $3H_0/(8\pi G)$, with $h\equiv H_0/100$ (km/s/Mpc)$^{-1}$:
 
-```dmhalo=jeans.dmhalo('nfw',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10)```
+```nfw=jeans.dmhalo('nfw',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10)```
 
 The object stores the input halo parameters as well as the corresponding scale radius and scale density ('r_scale', 'rho_scale'), maximum circular velocity ('v_max'), radius where vmax occurs ('r_max'), and (3d) radial functions for the mass density ('func_density'), enclosed mass ('func_mass'), and circular velocity ('func_vcirc')
 
 For the core-NFW-tides halo, this would look like
 
-```dmhalo=jeans.dmhalo('cnfwt',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10,r_core=0.3,n_core=1.,r_tide=1.,delta=5.)```
+```cnfwt=jeans.dmhalo('cnfwt',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10,r_core=0.3,n_core=1.,r_tide=1.,delta=5.)```
+
+\textit{Important:} Note that for cNFW and cNFWt models, $r_{\rm c}$ and $r_{\rm t}$ are specified in units of $r_{\triangle}$.
 
 Note that for cNFW and cNFWt models, the standard definitions of parameters $M_{\triangle}$, $c_{\triangle}$ and $r_{\triangle}$ apply to the density and mass profile of the corresponding NFW halo that would be obtained by setting $r_{\rm c}=0$ and $r_{\rm t}=\infty$.
 
