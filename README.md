@@ -13,7 +13,7 @@ pip install jeans
 ```
 # Available Dark Matter Halo Models
 
-The alpha/beta/gamma ('abg') model has density profile $\rho(r)=\frac{\rho_s}{(r/r_s)^{\gamma}[1+(r/r_s)^{\alpha}]^{(\beta-gamma)/\alpha}}
+The alpha/beta/gamma ('abg') model has density profile $\rho(r)=\frac{\rho_s}{(r/r_s)^{\gamma}[1+(r/r_s)^{\alpha}]^{(\beta-gamma)/\alpha}}$.
 
 In order to create an object representing an NFW halo with overdensity parameter `triangle', halo mass  :
 
