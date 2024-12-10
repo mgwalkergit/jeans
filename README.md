@@ -30,12 +30,15 @@ The core-NFW-tides ('cnfwt') halo is by Read et al. (arXiv:1805.06934), with den
 
 The alpha/beta/gamma ('abg') model has number density profile $\nu(r)=\frac{\nu_0}{(r/r_s)^{\gamma}[1+(r/r_s)^{\alpha}]^{(\beta-\gamma)/\alpha}}$.
 
-The Plummer model is a special case of the 'abg' model, with $(\alpha,\beta,\gamma)=(2,5,0)$.
+The Plummer model is a special case of the 'abg' model, with $(\alpha,\beta,\gamma)=(2,5,0)$, but can be called directly.
 
-The 'a2bg' model is a special case of the 'abg' model, with $\alpha=2$.
+The 'a2bg' model is a special case of the 'abg' model, with $\alpha=2$, but can be called directly.
 
 The exponential model is defined in terms of projected density, $\Sigma(R)=\Sigma_0\exp(-R/R_e)$.
 
+# Available Models for velocity dispersion anisotropy of the tracer component
+
+The only model currently implemented is that of Read et al. (arXiv:1805.06934): $\beta(r)\equiv 1-\sigma^2_{\rm t}/\sigma^2_{\rm r}=\beta_0+(\beta_{\infty}-\beta_0)/(1+(r/r_{\beta})^{-n})$, where $\sigma_{\rm r}$ is the radial velocity dispersion and $\sigma_{\rm t}=\sigma_{\theta}=\sigma_{\phi}$ is the tangential component (the two angular components have equal magnitude in the absence of rotation).  
 
 
 
