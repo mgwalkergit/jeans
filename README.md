@@ -1,6 +1,6 @@
 # jeans
 
-A package for calculating properties of (spherical) dark matter halos and embedded (spherical) stellar populations, including integration of the (spherical) Jeans equation.
+A package for calculating properties of (spherical) dark matter halos and embedded (spherical) stellar populations, including integration of the (spherical) Jeans equation in 2D (observed projections) and 3D.
 
 Author: Matthew G. Walker (2024) 
 
@@ -46,6 +46,8 @@ The only model currently implemented is that of Read et al. (arXiv:1805.06934): 
 In order to create an object representing an NFW halo with overdensity parameter $\triangle=200$, halo mass given by $M_{\triangle}=1\times 10^{10}M_{\odot}$ and concentration $c_{\triangle}=r_{\triangle}/r_s=10$, where $M_{\triangle}\equiv M(r_{\triangle})$ is the mass enclosed within a sphere of radius $r_{\triangle}$ and the mean halo density within a sphere of radius $r_{\triangle}$ is $\triangle$ times the cosmological critical density given by $3H_0/(8\pi G)$, with $h\equiv H_0/100$ (km/s/Mpc)$^{-1}$:
 
 ```dmhalo=jeans.dmhalo('nfw',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10)```
+
+The object stores the input halo parameters as well as the corresponding scale radius and scale density ('r_scale', 'rho_scale'), maximum circular velocity ('v_max'), radius where vmax occurs ('r_max'), and (3d) radial functions for the mass density ('func_density'), enclosed mass ('func_mass'), and circular velocity ('func_vcirc')
 
 # Examples 
 
