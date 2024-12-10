@@ -1,4 +1,3 @@
-from xymass import sampler
 import numpy as np
 import scipy
 import scipy.optimize
@@ -6,7 +5,6 @@ import scipy.special
 import warnings
 import matplotlib.pyplot as plt
 import astropy as ap
-import time
 
 g=0.004317#newton's G in units of km/s, pc, Msun
 
@@ -592,12 +590,10 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     min0=bigx
     max0=params['upper_limit']
 
+    bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2=np.nan,np.nan,np.nan,np.nan,np.nan
+    
     if min0==max0:
-        bigsigmasigmalos2=0.
-        bigsigmasigmarad2=0.
-        bigsigmasigmatan2=0.
-        nusigmarad2=0.
-        nusigmatan2=0.
+        bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2=0.,0.,0.,0.,0.
         
     else:
         
