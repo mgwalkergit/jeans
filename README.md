@@ -53,7 +53,7 @@ For the core-NFW-tides halo, this would look like
 
 ```cnfwt=jeans.dmhalo('cnfwt',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10,r_core=0.3,n_core=1.,r_tide=1.,delta=5.)```
 
-\textit{Important:} Note that for cNFW and cNFWt models, $r_{\rm c}$ and $r_{\rm t}$ are specified in units of $r_{\triangle}$.
+##Note that for cNFW and cNFWt models, $r_{\rm c}$ and $r_{\rm t}$ are specified in units of $r_{\triangle}$.##
 
 Note that for cNFW and cNFWt models, the standard definitions of parameters $M_{\triangle}$, $c_{\triangle}$ and $r_{\triangle}$ apply to the density and mass profile of the corresponding NFW halo that would be obtained by setting $r_{\rm c}=0$ and $r_{\rm t}=\infty$.
 
