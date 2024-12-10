@@ -15,7 +15,7 @@ pip install jeans
 
 The alpha/beta/gamma ('abg') model has density profile $\rho(r)=\frac{\rho_s}{(r/r_s)^{\gamma}[1+(r/r_s)^{\alpha}]^{(\beta-\gamma)/\alpha}}$.
 
-The Navarro-Frenk-White ('nfw') model is a special case of the above, with $(\alpha,\beta,\gamma)=(1,3,1).
+The Navarro-Frenk-White ('nfw') model is a special case of the above, with $(\alpha,\beta,\gamma)=(1,3,1)$.
 
 The core-NFW-tides model is
 
