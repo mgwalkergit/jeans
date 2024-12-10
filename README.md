@@ -25,6 +25,8 @@ The core-NFW ('cnfw') halo is by Read et al. (arXiv:1805.06934), defined in term
 
 The core-NFW-tides ('cnfwt') halo is by Read et al. (arXiv:1805.06934), with density profile $\rho_{\rm cNFWt}(r)=\rho_{\rm cNFW}(r)$ for $r<r_{\rm t}$ and $\rho_{\rm cNFWt}(r)=\rho_{\rm cNFW}(r_{\rm t})(r/r_{\rm t})^{-\delta}$, allowing for power-law decrease in density beyond `tidal' radius $r_{\rm t}$.
 
+For cNFW and cNFWt models, the standard definitions of parameters $M_{\triangle}$, $c_{\triangle}$ and $r_{\triangle}$ apply to the density and mass profile of the corresponding NFW halo that would be obtained by setting $r_{\rm c}=0$ and $r_{\rm t}=\infty$.
+
 
 # Available Models for Tracer component
 
@@ -40,22 +42,28 @@ The exponential model is defined in terms of projected density, $\Sigma(R)=\Sigm
 
 The only model currently implemented is that of Read et al. (arXiv:1805.06934): $\beta(r)\equiv 1-\sigma^2_{\rm t}/\sigma^2_{\rm r}=\beta_0+(\beta_{\infty}-\beta_0)/(1+(r/r_{\beta})^{-n})$, where $\sigma_{\rm r}$ is the radial component of the velocity dispersion and $\sigma_{\rm t}=\sigma_{\theta}=\sigma_{\phi}$ is the tangential component (the two angular components have equal magnitude in the absence of rotation).  
 
-
 # Usage
 
 In order to create an object representing, e.g., an NFW halo with overdensity parameter $\triangle=200$, halo mass given by $M_{\triangle}=1\times 10^{10}M_{\odot}$ and concentration $c_{\triangle}=r_{\triangle}/r_s=10$, where $M_{\triangle}\equiv M(r_{\triangle})$ is the mass enclosed within a sphere of radius $r_{\triangle}$ and the mean halo density within a sphere of radius $r_{\triangle}$ is $\triangle$ times the cosmological critical density given by $3H_0/(8\pi G)$, with $h\equiv H_0/100$ (km/s/Mpc)$^{-1}$:
 
-```nfw=jeans.dmhalo('nfw',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10)```
+```nfw=jeans.get_dmhalo('nfw',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10)```
 
-The object stores the input halo parameters as well as the corresponding scale radius and scale density ('r_scale', 'rho_scale'), maximum circular velocity ('v_max'), radius where vmax occurs ('r_max'), and (3d) radial functions for the mass density ('func_density'), enclosed mass ('func_mass'), and circular velocity ('func_vcirc')
+The object stores the input halo parameters as well as the corresponding scale radius and scale density ('r_scale', 'rho_scale'), maximum circular velocity ('v_max'), radius where vmax occurs ('r_max'), and (3d) radial functions for the mass density ('func_density'), enclosed mass ('func_mass'), and circular velocity ('func_vcirc').
 
-For the core-NFW-tides halo, this would look like
+For the core-NFW-tides halo, e.g., this would become
 
-```cnfwt=jeans.dmhalo('cnfwt',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10,r_core=0.3,n_core=1.,r_tide=1.,delta=5.)```
+```cnfwt=jeans.get_dmhalo('cnfwt',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10,r_core=0.3,n_core=1.,r_tide=1.,delta=5.)```
 
 ##Note that for cNFW and cNFWt models, $r_{\rm c}$ and $r_{\rm t}$ are specified in units of $r_{\triangle}$.##
 
-Note that for cNFW and cNFWt models, the standard definitions of parameters $M_{\triangle}$, $c_{\triangle}$ and $r_{\triangle}$ apply to the density and mass profile of the corresponding NFW halo that would be obtained by setting $r_{\rm c}=0$ and $r_{\rm t}=\infty$.
+To create an object representing, e.g., a tracer component following a Plummer profile with scale radius 100 pc (units of pc assumed, for compatibility with DM halos), total luminosity 1000 $L_{\odot}$, and tracer mass-to-light ratio $\Upsilon=1$ (solar units):
+
+```plum=jeans.get_tracer('plum',luminosity_tot=1000.,r_scale=100.,upsilon=1.)'''
+
+
+
+
+
 
 # Examples 
 

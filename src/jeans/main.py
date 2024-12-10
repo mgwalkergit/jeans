@@ -325,7 +325,7 @@ def get_dmhalo(model,**params):
         def func_mass(x):
             return abg_triangle_mass(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
 
-    elif model=='cnfw':
+    elif model=='cnfw':#params['r_core'] is core radius
         
         r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
@@ -334,7 +334,7 @@ def get_dmhalo(model,**params):
         def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfw_mass(x,params['c_triangle'],params['r_core'],params['n_core'])
 
-    elif model=='cnfwt':
+    elif model=='cnfwt':#params['r_core'] is core radius / r_triangle, params['r_tide'] is tidal radius / r_triangle
         
         r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
