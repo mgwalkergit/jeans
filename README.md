@@ -58,8 +58,9 @@ For the core-NFW-tides halo, e.g., this would become
 
 To create an object representing, e.g., a tracer component following a Plummer profile with scale radius 100 pc (units of pc assumed, for compatibility with DM halos), total luminosity 1000 $L_{\odot}$, and tracer mass-to-light ratio $\Upsilon=1$ (solar units):
 
-```plum=jeans.get_tracer('plum',luminosity_tot=1000.,r_scale=100.,upsilon=1.)'''
+```plum=jeans.get_tracer('plum',luminosity_tot=1000.,r_scale=100.,upsilon=1.)```
 
+The tracer object stores the input parameters as well as the normalization constants for 3D and (projected) 2D density profiles ('nu0' and 'sigma0', respectively), the number of tracer particles within a sphere of radius r_scale (normalized by nu0*r_scale**3, 'nscalenorm'), and within a sphere of radius infinity (normalized by nu0*r_scale**3, 'ntotnorm'), the 2D and 3D halflight radii ('rhalf_2d' and rhalf_3d') in units of pc, and functions for the 3D number density ('func_density'), 2D projected number density ('func_density_2d'), and cumulative number ('func_number').
 
 
 
