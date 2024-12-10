@@ -30,7 +30,7 @@ The core-NFW-tides ('cnfwt') halo is by Read et al. (arXiv:1805.06934), with den
 
 The alpha/beta/gamma ('abg') model has number density profile $\nu(r)=\frac{\nu_0}{(r/r_s)^{\gamma}[1+(r/r_s)^{\alpha}]^{(\beta-\gamma)/\alpha}}$.
 
-The Plummer model is a special case of the 'abg' model, with $(\alpha,\beta,\gamma)=(2,5,0).
+The Plummer model is a special case of the 'abg' model, with $(\alpha,\beta,\gamma)=(2,5,0)$.
 
 The 'a2bg' model is a special case of the 'abg' model, with $\alpha=2$.
 
