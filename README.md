@@ -23,7 +23,7 @@ The Dehnen Core ('dehnen_core') halo is a special case of the 'abg' halo, with $
 
 The core-NFW ('cnfw') halo is by Read et al. (arXiv:1805.06934), defined in terms of the enclosed mass profile, $M_{\rm cNFW}(r)=M_{\rm NFW}(r)f^n$, where $M_{\rm NFW}(r)$ is the enclosed mass profile of the NFW halo and $f^n=[\tanh(r/r_c)]^n$, with $r_c$ a core radius.
 
-The core-NFW-tides ('cnfwt') halo is by Read et al. (arXiv:1805.06934), with density profile $\rho_{\rm cNFWt}(r)=\rho_{\rm cNFW}(r)$ for $r<r_{\rm t}$ and $\rho_{\rm cNFWt}(r)=\rho_{\rm cNFW}(r_{\rm t})(r/r_{\rm t})^(-\delta}$, allowing for power-law decrease in density beyond `tidal' radius $r_{\rm t}$.
+The core-NFW-tides ('cnfwt') halo is by Read et al. (arXiv:1805.06934), with density profile $\rho_{\rm cNFWt}(r)=\rho_{\rm cNFW}(r)$ for $r<r_{\rm t}$ and $\rho_{\rm cNFWt}(r)=\rho_{\rm cNFW}(r_{\rm t})(r/r_{\rm t})^{-\delta}$, allowing for power-law decrease in density beyond `tidal' radius $r_{\rm t}$.
 
 
 
