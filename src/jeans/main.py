@@ -143,7 +143,7 @@ def get_a2bg_scale(luminosity_tot,r_scale,beta,gamma):#nu0, normalization factor
     sigma0=luminosity_tot/4./np.sqrt(np.pi)/(r_scale**2)*(beta-3.)*scipy.special.gamma(b)/scipy.special.gamma(a)/scipy.special.gamma(c)
     return nu0,sigma0
 
-def get_abg_nu0(luminosity_tot,r_scale,alpha,beta,gamma):#nu0, normalization factor for luminosity density profile
+def get_abg_scale(luminosity_tot,r_scale,alpha,beta,gamma):#nu0, normalization factor for luminosity density profile
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
     c=beta/2.
@@ -260,13 +260,11 @@ def abg_ntotnorm(alpha,beta,gamma):#N(r=infinity)/(nu0 * r_scale**3)
     d=(beta-3.)/alpha
     return 4.*np.pi/alpha*scipy.special.gamma(d)*scipy.special.gamma(a)/scipy.special.gamma(b)
 
-
-
 def get_dmhalo(model,**params):
     
     class dmhalo:
         
-        def __init__(self,model=None,triangle=None,h=None,m_triangle=None,c_triangle=None,r_triangle=None,r_core=None,n_core=None,r_tide=None,delta=None,alpha=None,beta=None,gamma=None,rho_scale=None,r_scale=None,v_max=None,r_max=None,func_density=None,func_mass=None,func_vcirc=None):
+        def __init__(self,model=None,triangle=None,h=None,m_triangle=None,c_triangle=None,r_triangle=None,r_core=None,n_core=None,r_tide=None,delta=None,alpha=None,beta=None,gamma=None,rho_scale=None,r_scale=None,v_max=None,r_max=None,density=None,mass=None,vcirc=None):
 
             self.model=model
             self.triangle=triangle
@@ -285,88 +283,88 @@ def get_dmhalo(model,**params):
             self.r_scale=r_scale
             self.v_max=v_max
             self.r_max=r_max
-            self.func_density=func_density
-            self.func_mass=func_mass
-            self.func_vcirc=func_vcirc
+            self.density=density
+            self.mass=mass
+            self.vcirc=vcirc
 
     if model=='nfw':
         
         r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
-        def func_density(x):
+        def density(x):
             return nfw_density(x,params['c_triangle'])
-        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+        def mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return nfw_mass(x,params['c_triangle'])
 
     if model=='dehnen_core':
         
         r_triangle,r_scale,rho_scale=get_dehnen_core_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
-        def func_density(x):
+        def density(x):
             return dehnen_core_density(x,params['c_triangle'])
-        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+        def mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return dehnen_core_mass(x,params['c_triangle'])
 
     if model=='dehnen_cusp':
         
         r_triangle,r_scale,rho_scale=get_dehnen_cusp_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
-        def func_density(x):
+        def density(x):
             return dehnen_cusp_density(x,params['c_triangle'])
-        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+        def mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return dehnen_cusp_mass(x,params['c_triangle'])
 
     elif model=='abg_triangle':
 
         r_triangle,r_scale,rho_scale=get_abg_triangle_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
 
-        def func_density(x):
+        def density(x):
             return abg_triangle_density(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
-        def func_mass(x):
+        def mass(x):
             return abg_triangle_mass(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
 
     elif model=='cnfw':#params['r_core'] is core radius
         
         r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
-        def func_density(x):
+        def density(x):
             return cnfw_density(x,params['c_triangle'],params['r_core'],params['n_core'])
-        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+        def mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfw_mass(x,params['c_triangle'],params['r_core'],params['n_core'])
 
     elif model=='cnfwt':#params['r_core'] is core radius / r_triangle, params['r_tide'] is tidal radius / r_triangle
         
         r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
-        def func_density(x):
+        def density(x):
             return cnfwt_density(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
-        def func_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
+        def mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfwt_mass(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
         
-    def func_vcirc(x):# returns circular velocity, km/s
-        return np.sqrt(g*func_mass(x)*params['m_triangle']/(x*r_triangle))
+    def vcirc(x):# returns circular velocity, km/s
+        return np.sqrt(g*mass(x)*params['m_triangle']/(x*r_triangle))
 
     def neg_vcirc2(x):
         if x<0.:
             return 1.e+30
-        return -func_mass(x)/x
+        return -mass(x)/x
         
     res=scipy.optimize.minimize(neg_vcirc2,[1.],method='nelder-mead',options={'xatol': 1e-8, 'disp': True})
     r_max=res.x[0]*r_triangle
-    v_max=func_vcirc(res.x[0])
+    v_max=vcirc(res.x[0])
 
     if model=='nfw':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,density=density,mass=mass,vcirc=vcirc)
     if model=='dehnen_core':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,density=density,mass=mass,vcirc=vcirc)
     if model=='dehnen_cusp':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,density=density,mass=mass,vcirc=vcirc)
     elif model=='abg_triangle':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,density=density,mass=mass,vcirc=vcirc)
     elif model=='cnfw':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,density=density,mass=mass,vcirc=vcirc)
     elif model=='cnfwt':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],r_tide=params['r_tide'],delta=params['delta'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,func_density=func_density,func_mass=func_mass,func_vcirc=func_vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],r_tide=params['r_tide'],delta=params['delta'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,density=density,mass=mass,vcirc=vcirc)
     else:
         raise TypeError('DM halo not properly specified!')
     
@@ -374,7 +372,7 @@ def get_tracer(model,**params):
 
     class tracer:
 
-        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu0=None,sigma0=None,nscalenorm=None,ntotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,func_density=None,func_density_2d=None,func_number=None):
+        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu0=None,sigma0=None,nscalenorm=None,ntotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,density=None,density_2d=None,number=None):
 
             self.model=model
             self.luminosity_tot=luminosity_tot
@@ -389,61 +387,61 @@ def get_tracer(model,**params):
             self.gamma=gamma
             self.rhalf_2d=rhalf_2d
             self.rhalf_3d=rhalf_3d
-            self.func_density=func_density
-            self.func_density_2d=func_density_2d
-            self.func_number=func_number
+            self.density=density
+            self.density_2d=density_2d
+            self.number=number
 
     if model=='plum':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.)
         nu0,sigma0=get_plum_scale(params['luminosity_tot'],params['r_scale'])
-        def func_density(x):
+        def density(x):
             return plum_density(x)
-        def func_density_2d(x):
+        def density_2d(x):
             return plum_density_2d(x)
-        def func_number(x):
+        def number(x):
             return plum_number(x)
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=plum_nscalenorm(),ntotnorm=plum_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,func_density=func_density,func_density_2d=func_density_2d,func_number=func_number)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=plum_nscalenorm(),ntotnorm=plum_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,density=density,density_2d=density_2d,number=number)
 
     if model=='exp':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.)
         nu0,sigma0=get_exp_scale(params['luminosity_tot'],params['r_scale'])
-        def func_density(x):
+        def density(x):
             return exp_density(x)
-        def func_density_2d(x):
+        def density_2d(x):
             return exp_density_2d(x)
-        def func_number(x):
+        def number(x):
             return exp_number(x)
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=exp_nscalenorm(),ntotnorm=exp_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,func_density=func_density,func_density_2d=func_density_2d,func_number=func_number)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=exp_nscalenorm(),ntotnorm=exp_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,density=density,density_2d=density_2d,number=number)
     
     if model=='a2bg':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.,beta=params['beta'],gamma=params['gamma'])
         nu0,sigma0=get_a2bg_scale(params['luminosity_tot'],params['r_scale'],params['beta'],params['gamma'])
-        def func_density(x):
+        def density(x):
             return a2bg_density(x,params['beta'],params['gamma'])
-        def func_density_2d(x):
+        def density_2d(x):
             return a2bg_density_2d(x,params['beta'],params['gamma'])
-        def func_number(x):
+        def number(x):
             return a2bg_number(x,params['beta'],params['gamma'])
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=a2bg_nscalenorm(params['beta'],params['gamma']),ntotnorm=a2bg_ntotnorm(params['beta'],params['gamma']),beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,func_density=func_density,func_density_2d=func_density_2d,func_number=func_number)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=a2bg_nscalenorm(params['beta'],params['gamma']),ntotnorm=a2bg_ntotnorm(params['beta'],params['gamma']),beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,density=density,density_2d=density_2d,number=number)
     
     if model=='abg':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'])
         nu0,sigma0=get_abg_scale(params['luminosity_tot'],params['r_scale'],params['alpha'],params['beta'],params['gamma'])
-        def func_density(x):
+        def density(x):
             return abg_density(x,params['alpha'],params['beta'],params['gamma'])
-        def func_density_2d(x):
+        def density_2d(x):
             return abg_density_2d(x,params['alpha'],params['beta'],params['gamma'])
-        def func_number(x):
+        def number(x):
             return abg_number(x,params['alpha'],params['beta'],params['gamma'])
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=abg_nscalenorm(params['alpha'],params['beta'],params['gamma']),ntotnorm=abg_ntotnorm(params['alpha'],params['beta'],params['gamma']),alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,func_density=func_density,func_density_2d=func_density_2d,func_number=func_number)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=abg_nscalenorm(params['alpha'],params['beta'],params['gamma']),ntotnorm=abg_ntotnorm(params['alpha'],params['beta'],params['gamma']),alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,density=density,density_2d=density_2d,number=number)
 
 
 def get_anisotropy(model,**params):
@@ -563,8 +561,8 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     def integrand1(x_halo,dmhalo,tracer,anisotropy):
         x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
         x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale# r / r_scale
-        mass=dmhalo.func_mass(x_halo)+tracer.func_number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
-        return mass*tracer.func_density(x_tracer)*anisotropy.f_beta(x_beta)/x_halo**2
+        mass=dmhalo.mass(x_halo)+tracer.number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
+        return mass*tracer.density(x_tracer)*anisotropy.f_beta(x_beta)/x_halo**2
     
     def integrand_los(x_halo,dmhalo,tracer,anisotropy):
         x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
@@ -623,8 +621,8 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
         
     def integrand1(x_halo,dmhalo,tracer):
         x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale# r / r_scale
-        mass=dmhalo.func_mass(x_halo)+tracer.func_number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
-        return np.sqrt(1.-(bigx/x_halo)**2)*mass*tracer.func_density(x_tracer)/x_halo
+        mass=dmhalo.mass(x_halo)+tracer.number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
+        return np.sqrt(1.-(bigx/x_halo)**2)*mass*tracer.density(x_tracer)/x_halo
     
     min0=bigx
     max0=params['upper_limit']
@@ -632,8 +630,8 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
 
 def projected_virial(x_halo,dmhalo,tracer):#computes integral for Wlos from Errani etal (2018)
     x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale
-    totalmass=dmhalo.func_mass(x_halo)+tracer.func_number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
-    return x_halo*tracer.func_density(x_tracer)*totalmass
+    totalmass=dmhalo.mass(x_halo)+tracer.number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
+    return x_halo*tracer.density(x_tracer)*totalmass
 
 def get_virial(dmhalo,tracer,**params):
     if not 'epsrel' in params:
@@ -647,6 +645,6 @@ def get_virial(dmhalo,tracer,**params):
     max0=np.inf
     val1=scipy.integrate.quad(projected_virial,min0,max0,args=(dmhalo,tracer),epsabs=params['epsabs'],epsrel=params['epsrel'],limit=params['limit'])
     vvar=val1[0]*4.*np.pi*g/3.*dmhalo.m_triangle*(dmhalo.r_triangle**2)/tracer.ntotnorm/tracer.r_scale**3
-    mu=g*(dmhalo.func_mass(tracer.rhalf_2d/dmhalo.r_triangle)+tracer.func_number(tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon)*dmhalo.m_triangle/tracer.rhalf_2d/vvar
+    mu=g*(dmhalo.mass(tracer.rhalf_2d/dmhalo.r_triangle)+tracer.number(tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon)*dmhalo.m_triangle/tracer.rhalf_2d/vvar
     return vvar,mu
 

@@ -48,7 +48,7 @@ In order to create an object representing, e.g., an NFW halo with overdensity pa
 
 ```nfw=jeans.get_dmhalo('nfw',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10)```
 
-The object stores the input halo parameters as well as the corresponding scale radius and scale density ('r_scale', 'rho_scale'), maximum circular velocity ('v_max'), radius where vmax occurs ('r_max'), and (3d) radial functions for the mass density ('func_density'), enclosed mass ('func_mass'), and circular velocity ('func_vcirc').
+The object stores the input halo parameters as well as the corresponding scale radius and scale density ('r_scale', 'rho_scale'), maximum circular velocity ('v_max'), radius where vmax occurs ('r_max'), and (3d) radial functions for the mass density ('density'), enclosed mass ('mass'), and circular velocity ('vcirc').
 
 For the core-NFW-tides halo, e.g., this would become
 
@@ -60,7 +60,7 @@ To create an object representing, e.g., a tracer component following a Plummer p
 
 ```plum=jeans.get_tracer('plum',luminosity_tot=1000.,r_scale=100.,upsilon=1.)```
 
-The tracer object stores the input parameters as well as the normalization constants for 3D and (projected) 2D density profiles ('nu0' and 'sigma0', respectively), the number of tracer particles within a sphere of radius r_scale (normalized by nu0 * r_scale^3, 'nscalenorm'), and within a sphere of radius infinity (normalized by nu0 * r_scale^3, 'ntotnorm'), the 2D and 3D halflight radii ('rhalf_2d' and rhalf_3d') in units of pc, and functions for the 3D number density ('func_density'), 2D projected number density ('func_density_2d'), and cumulative number ('func_number').
+The tracer object stores the input parameters as well as the normalization constants for 3D and (projected) 2D density profiles ('nu0' and 'sigma0', respectively), the number of tracer particles within a sphere of radius r_scale (normalized by nu0 * r_scale^3, 'nscalenorm'), and within a sphere of radius infinity (normalized by nu0 * r_scale^3, 'ntotnorm'), the 2D and 3D halflight radii ('rhalf_2d' and rhalf_3d') in units of pc, and functions for the 3D number density ('density'), 2D projected number density ('density_2d'), and cumulative number ('number').
 
 For the 'abg' tracer model, this would become
 
