@@ -89,11 +89,11 @@ def cnfwt_density(x,c_triangle,r_core,n_core,r_tide,delta):#returns rho_coreNFWt
         if x<r_tide:
             return cnfw_density(x,c_triangle,r_core,n_core)
         else:
-            return cnfw_density(r_tide,c_triangle,r_core,n_core)*((x/r_tide)**(-delta_halo))
+            return cnfw_density(r_tide,c_triangle,r_core,n_core)*((x/r_tide)**(-delta))
     elif ((type(x) is list)|(type(x) is np.ndarray)):
         val=np.zeros(len(x))
         val[x<r_tide]=cnfw_density(x[x<r_tide],c_triangle,r_core,n_core)
-        val[x>=r_tide]=cnfw_density(r_tide,c_triangle,r_core,n_core)*((x[x>=r_tide]/r_tide)**(-delta_halo))
+        val[x>=r_tide]=cnfw_density(r_tide,c_triangle,r_core,n_core)*((x[x>=r_tide]/r_tide)**(-delta))
         return val
     
 def cnfwt_mass(x,c_triangle,r_core,n_core,r_tide,delta):#returns M_cNFWt(x) / m_triangle, where x=r/r_triangle, r_core=(core radius)/r_triangle, r_tide=(tidal radius)/r_triangle
@@ -101,7 +101,7 @@ def cnfwt_mass(x,c_triangle,r_core,n_core,r_tide,delta):#returns M_cNFWt(x) / m_
         if x<r_tide:
             return cnfw_mass(x,c_triangle,r_core,n_core)
         else:
-            return cnfw_mass(r_tide,c_triangle,r_core,n_core,r_tide)+cnfw_density(r_tide,c_triangle,r_core,n_core)*get_nfw_gc(c_triangle)/(3.-delta)*((c_triangle*r_tide)**3)*(((x/r_tide)**(3.-delta))-1.)
+            return cnfw_mass(r_tide,c_triangle,r_core,n_core)+cnfw_density(r_tide,c_triangle,r_core,n_core)*get_nfw_gc(c_triangle)/(3.-delta)*((c_triangle*r_tide)**3)*(((x/r_tide)**(3.-delta))-1.)
     elif ((type(x) is list)|(type(x) is np.ndarray)):
         val=np.zeros(len(x))
         val[x<r_tide]=cnfw_mass(x[x<r_tide],c_triangle,r_core,n_core)
@@ -109,7 +109,7 @@ def cnfwt_mass(x,c_triangle,r_core,n_core,r_tide,delta):#returns M_cNFWt(x) / m_
         return val
 
 def abg_triangle_density(x,c_triangle,alpha,beta,gamma):# returns rho_abg(x) / rho_scale, where x = r / r_triangle
-    cx=params['c_triangle']*x #r / r_scale
+    cx=c_triangle*x #r / r_scale
     return 1./(cx**gamma)/(1.+cx**alpha)**((beta-gamma)/alpha)
 
 def abg_triangle_mass(x,c_triangle,alpha,beta,gamma):# returns enclosed mass M_abg(x) / m_triangle, where x = r/r_triangle
