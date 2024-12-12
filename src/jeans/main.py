@@ -289,7 +289,7 @@ def get_dmhalo(model,**params):
             self.vcirc=vcirc
 
     h0=params['h']*100*u.km/u.s/u.Mpc
-    if type(params['m_triangle']) is float:
+    if ((type(params['m_triangle']) is float)|(type(params['m_triangle']) is np.float64)):
         params['m_triangle']=params['m_triangle']*u.M_sun
     elif type(params['m_triangle']) is int:
         params['m_triangle']=float(params['m_triangle'])*u.M_sun
@@ -401,14 +401,14 @@ def get_tracer(model,**params):
             self.density_2d=density_2d
             self.number=number
 
-    if type(params['r_scale']) is float:
+    if ((type(params['r_scale']) is float)|(type(params['r_scale']) is np.float64)):
         params['r_scale']=params['r_scale']*u.pc
     elif type(params['r_scale']) is int:
         params['r_scale']=float(params['r_scale'])*u.pc
     else:
         if type(params['r_scale']) is not ap.units.quantity.Quantity:
             raise TypeError('tracer r_scale must be float (unit of pc will be assumed) or astropy.quantity with unit specified')
-    if type(params['luminosity_tot']) is float:
+    if ((type(params['luminosity_tot']) is float)|(type(params['luminosity_tot']) is np.float64)):
         params['luminosity_tot']=params['luminosity_tot']*u.L_sun
     elif type(params['luminosity_tot']) is int:
         params['luminosity_tot']=float(params['luminosity_tot'])*u.L_sun
@@ -514,17 +514,8 @@ def get_rhalf(model,r_scale,**params):
             return -0.5+2*scipy.special.gamma((beta-gamma)/2)/scipy.special.gamma((beta-3)/2)/scipy.special.gamma((3-gamma)/2)/(3-gamma)*x**(3-gamma)*scipy.special.hyp2f1((3-gamma)/2,(beta-gamma)/2,(5-gamma)/2,-x**2)
         low0=1.e-20
         high0=1.e+20
-        if ((type(r_scale) is float)|(type(r_scale) is np.float64)):
-            rhalf_2d=r_scale*scipy.optimize.brentq(rootfind_2bg_2d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=1000,full_output=False,disp=True)
-            rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_2bg_3d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
-        else:
-            rhalf_2d=[]
-            rhalf_3d=[]
-            for i in range(0,len(r_scale)):
-                rhalf_2d.append(r_scale[i]*scipy.optimize.brentq(rootfind_2bg_2d,low0,high0,args=(params['beta'][i],params['gamma'][i]),xtol=1.e-12,rtol=1.e-6,maxiter=1000,full_output=False,disp=True))
-                rhalf_3d.append(r_scale[i]*scipy.optimize.brentq(rootfind_2bg_3d,low0,high0,args=(params['beta'][i],params['gamma'][i]),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True))
-            rhalf_2d=np.array(rhalf_2d)
-            rhalf_3d=np.array(rhalf_3d)
+        rhalf_2d=r_scale*scipy.optimize.brentq(rootfind_2bg_2d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=1000,full_output=False,disp=True)
+        rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_2bg_3d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
         nu0=params['bigsigma0']*scipy.special.gamma(params['beta']/2)/np.sqrt(np.pi)/r_scale/scipy.special.gamma((params['beta']-1)/2)
         ntot=(1.-params['ellipticity'])*4.*np.sqrt(np.pi)*r_scale**2*params['bigsigma0']/(params['beta']-3)*scipy.special.gamma((3-params['gamma'])/2)*scipy.special.gamma(params['beta']/2)/scipy.special.gamma((params['beta']-params['gamma'])/2)
 
@@ -540,17 +531,8 @@ def get_rhalf(model,r_scale,**params):
             return -0.5+(x**(3.-gamma))*scipy.special.hyp2f1(a,b,c,z1)*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(c)
         low0=1.e-20
         high0=1.e+20
-        if ((type(r_scale) is float)|(type(r_scale) is np.float64)):
-            rhalf_2d=np.nan#not computed yet, projection of abg model requires numerical integration
-            rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_abg_3d,low0,high0,args=(params['alpha'],params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
-        else:
-            rhalf_2d=[]
-            rhalf_3d=[]
-            for i in range(0,len(r_scale)):
-                rhalf_2d.append(np.nan)#not computed yet, projection of abg model requires numerical integration
-                rhalf_3d.append(r_scale[i]*scipy.optimize.brentq(rootfind_abg_3d,low0,high0,args=(params['alpha'],params['beta'][i],params['gamma'][i]),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True))
-            rhalf_2d=np.array(rhalf_2d)
-            rhalf_3d=np.array(rhalf_3d)
+        rhalf_2d=np.nan#not computed yet, projection of abg model requires numerical integration
+        rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_abg_3d,low0,high0,args=(params['alpha'],params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
         nu0=np.nan#not yet computed
         ntot=np.nan#not yet computed
 
