@@ -419,7 +419,7 @@ def get_tracer(model,**params):
         def luminosity_density(x):
             return number_density(x)*params['luminosity_tot']/params['r_scale']**3/ntotnorm
 
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=plum_nscalenorm(),ntotnorm=plum_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=number_density*params['luminosity_tot']/plum_ntotnorm()/params['r_scale']**3,luminosity=number*params['luminosity_tot'])
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=plum_nscalenorm(),ntotnorm=plum_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=number_density()*params['luminosity_tot']/plum_ntotnorm()/params['r_scale']**3,luminosity=number()*params['luminosity_tot'])
 
     if model=='exp':
 
