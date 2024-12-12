@@ -18,26 +18,38 @@ def get_dehnen_core_gc(c_triangle):
 def get_dehnen_cusp_gc(c_triangle):
     return ((1.+c_triangle)**2)/c_triangle**2
 
-def get_nfw_scale(triangle,h0,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
+def get_nfw_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
     gc=get_nfw_gc(c_triangle)
-    r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    if type(m_triangle) is ap.quantity.Quantity:
+        r_triangle=((2.*g*u.km**2*u.pc/u.s**2/u.M_sun*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    else:
+        r_triangle=(2.*g.value*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
     return r_triangle,r_scale,gc*m_triangle/4./np.pi/r_scale**3
 
-def get_dehnen_core_scale(triangle,h0,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
+def get_dehnen_core_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
     gc=get_dehnen_core_gc(c_triangle)
-    r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    if type(m_triangle) is ap.quantity.Quantity:
+        r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle /    else:
+        r_triangle=(2.*g.value*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+ (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
     return r_triangle,r_scale,gc*m_triangle/(4./3.)/np.pi/r_scale**3
 
-def get_dehnen_cusp_scale(triangle,h0,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
+def get_dehnen_cusp_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
     gc=get_dehnen_cusp_gc(c_triangle)
-    r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    if type(m_triangle) is ap.quantity.Quantity:
+        r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    else:
+        r_triangle=(2.*g.value*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
     return r_triangle,r_scale,gc*m_triangle/(4./2.)/np.pi/r_scale**3
 
-def get_abg_triangle_scale(triangle,h0,m_triangle,c_triangle,alpha,beta,gamma):#r_triangle, scale radius r_s and scale density, rho_s, of abg halo, given triangle parameters, units of U(m_triangle)/U(r_triangle)**3
-    r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+def get_abg_triangle_scale(triangle,h,m_triangle,c_triangle,alpha,beta,gamma):#r_triangle, scale radius r_s and scale density, rho_s, of abg halo, given triangle parameters, units of U(m_triangle)/U(r_triangle)**3
+    if type(m_triangle) is ap.quantity.Quantity:
+        r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+    else:
+        r_triangle=(2.*g.value*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
         
     a=(3.-gamma)/alpha
@@ -288,18 +300,9 @@ def get_dmhalo(model,**params):
             self.mass=mass
             self.vcirc=vcirc
 
-    h0=params['h']*100*u.km/u.s/u.Mpc
-    if ((type(params['m_triangle']) is float)|(type(params['m_triangle']) is np.float64)):
-        params['m_triangle']=params['m_triangle']*u.M_sun
-    elif type(params['m_triangle']) is int:
-        params['m_triangle']=float(params['m_triangle'])*u.M_sun
-    else:
-        if type(params['m_triangle']) is not ap.units.quantity.Quantity:
-            raise TypeError('halo m_triangle must be float (unit of Msun will be assumed) or astropy.quantity with unit specified')
-    
     if model=='nfw':
         
-        r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],h0,params['m_triangle'],params['c_triangle'])
+        r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
         def density(x):
             return nfw_density(x,params['c_triangle'])
@@ -308,7 +311,7 @@ def get_dmhalo(model,**params):
 
     if model=='dehnen_core':
         
-        r_triangle,r_scale,rho_scale=get_dehnen_core_scale(params['triangle'],h0,params['m_triangle'],params['c_triangle'])
+        r_triangle,r_scale,rho_scale=get_dehnen_core_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
         def density(x):
             return dehnen_core_density(x,params['c_triangle'])
@@ -317,7 +320,7 @@ def get_dmhalo(model,**params):
 
     if model=='dehnen_cusp':
         
-        r_triangle,r_scale,rho_scale=get_dehnen_cusp_scale(params['triangle'],h0,params['m_triangle'],params['c_triangle'])
+        r_triangle,r_scale,rho_scale=get_dehnen_cusp_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
         def density(x):
             return dehnen_cusp_density(x,params['c_triangle'])
@@ -326,7 +329,7 @@ def get_dmhalo(model,**params):
 
     elif model=='abg_triangle':
 
-        r_triangle,r_scale,rho_scale=get_abg_triangle_scale(params['triangle'],h0,params['m_triangle'],params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
+        r_triangle,r_scale,rho_scale=get_abg_triangle_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
 
         def density(x):
             return abg_triangle_density(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
@@ -335,7 +338,7 @@ def get_dmhalo(model,**params):
 
     elif model=='cnfw':#params['r_core'] is core radius
         
-        r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],h0,params['m_triangle'],params['c_triangle'])
+        r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
         def density(x):
             return cnfw_density(x,params['c_triangle'],params['r_core'],params['n_core'])
@@ -344,7 +347,7 @@ def get_dmhalo(model,**params):
 
     elif model=='cnfwt':#params['r_core'] is core radius / r_triangle, params['r_tide'] is tidal radius / r_triangle
         
-        r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],h0,params['m_triangle'],params['c_triangle'])
+        r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
         
         def density(x):
             return cnfwt_density(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
@@ -400,21 +403,6 @@ def get_tracer(model,**params):
             self.density=density
             self.density_2d=density_2d
             self.number=number
-
-    if ((type(params['r_scale']) is float)|(type(params['r_scale']) is np.float64)):
-        params['r_scale']=params['r_scale']*u.pc
-    elif type(params['r_scale']) is int:
-        params['r_scale']=float(params['r_scale'])*u.pc
-    else:
-        if type(params['r_scale']) is not ap.units.quantity.Quantity:
-            raise TypeError('tracer r_scale must be float (unit of pc will be assumed) or astropy.quantity with unit specified')
-    if ((type(params['luminosity_tot']) is float)|(type(params['luminosity_tot']) is np.float64)):
-        params['luminosity_tot']=params['luminosity_tot']*u.L_sun
-    elif type(params['luminosity_tot']) is int:
-        params['luminosity_tot']=float(params['luminosity_tot'])*u.L_sun
-    else:
-        if type(params['luminosity_tot']) is not ap.units.quantity.Quantity:
-            raise TypeError('tracer luminosity_tot must be float (unit of Lsun will be assumed) or astropy.quantity with unit specified')
 
     if model=='plum':
 
