@@ -294,7 +294,8 @@ def get_dmhalo(model,**params):
     elif type(params['m_triangle']) is int:
         params['m_triangle']=float(params['m_triangle'])*u.M_sun
     else:
-        raise TypeError('halo m_triangle must be float (unit of Msun will be assumed) or astropy.quantity with unit specified')
+        if type(params['m_triangle']) is not ap.units.quantity.Quantity:
+            raise TypeError('halo m_triangle must be float (unit of Msun will be assumed) or astropy.quantity with unit specified')
     
     if model=='nfw':
         
@@ -405,13 +406,15 @@ def get_tracer(model,**params):
     elif type(params['r_scale']) is int:
         params['r_scale']=float(params['r_scale'])*u.pc
     else:
-        raise TypeError('tracer r_scale must be float (unit of pc assumed) or astropy.quantity with unit specified')
+        if type(params['r_scale']) is not ap.units.quantity.Quantity:
+            raise TypeError('tracer r_scale must be float (unit of pc will be assumed) or astropy.quantity with unit specified')
     if type(params['luminosity_tot']) is float:
         params['luminosity_tot']=params['luminosity_tot']*u.L_sun
     elif type(params['luminosity_tot']) is int:
         params['luminosity_tot']=float(params['luminosity_tot'])*u.L_sun
     else:
-        raise TypeError('tracer r_scale must be float (unit of pc assumed) or astropy.quantity with unit specified')
+        if type(params['luminosity_tot']) is not ap.units.quantity.Quantity:
+            raise TypeError('tracer luminosity_tot must be float (unit of Lsun will be assumed) or astropy.quantity with unit specified')
 
     if model=='plum':
 
