@@ -385,7 +385,7 @@ def get_tracer(model,**params):
 
     class tracer:
 
-        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu0=None,sigma0=None,nscalenorm=None,ntotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,number_density=None,number_density_2d=None,number=None):
+        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu0=None,sigma0=None,nscalenorm=None,ntotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,number_density=None,number_density_2d=None,number=None,luminosity_density=None,luminosity=None):
 
             self.model=model
             self.luminosity_tot=luminosity_tot
