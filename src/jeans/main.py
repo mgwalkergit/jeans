@@ -136,17 +136,17 @@ def abg_triangle_mass(x,c_triangle,alpha,beta,gamma):# returns enclosed mass M_a
     hf2=scipy.special.hyp2f1(a,b,c,z2)
     return ((cx/c_triangle)**(3.-gamma))*hf1/hf2
 
-def get_plum_scale(luminosity_tot,r_scale):#nu0, normalization factor for luminosity density profile
+def get_plum_scale(luminosity_tot,r_scale):#nu0, normalization factor for number density profile
     nu0=3.*luminosity_tot/4./np.pi/r_scale**3
     sigma0=luminosity_tot/np.pi/r_scale**2
     return nu0,sigma0
 
-def get_exp_scale(luminosity_tot,r_scale):#nu0, normalization factor for luminosity density profile
+def get_exp_scale(luminosity_tot,r_scale):#nu0, normalization factor for number density profile
     nu0=luminosity_tot/2./np.pi**2/r_scale**3
     sigma0=luminosity_tot/2./np.pi/r_scale**2
     return nu0,sigma0
 
-def get_a2bg_scale(luminosity_tot,r_scale,beta,gamma):#nu0, normalization factor for luminosity density profile
+def get_a2bg_scale(luminosity_tot,r_scale,beta,gamma):#nu0, normalization factor for number density profile
     alpha=2. 
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
@@ -156,7 +156,7 @@ def get_a2bg_scale(luminosity_tot,r_scale,beta,gamma):#nu0, normalization factor
     sigma0=luminosity_tot/4./np.sqrt(np.pi)/(r_scale**2)*(beta-3.)*scipy.special.gamma(b)/scipy.special.gamma(a)/scipy.special.gamma(c)
     return nu0,sigma0
 
-def get_abg_scale(luminosity_tot,r_scale,alpha,beta,gamma):#nu0, normalization factor for luminosity density profile
+def get_abg_scale(luminosity_tot,r_scale,alpha,beta,gamma):#nu0, normalization factor for number density profile
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
     c=beta/2.
@@ -165,22 +165,22 @@ def get_abg_scale(luminosity_tot,r_scale,alpha,beta,gamma):#nu0, normalization f
     sigma0=np.nan#haven't yet implemented, probably a numerical integration
     return nu0,sigma0
 
-def plum_density(x):#nu(x) / nu0, x=r/r_scale
+def plum_number_density(x):#nu(x) / nu0, x=r/r_scale
     return 1./(1.+x**2)**(2.5)
 
-def plum_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
+def plum_number_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
     return 1./(1.+x**2)**2
 
-def exp_density(x):#nu(x) / nu0, x=r/r_scale
+def exp_number_density(x):#nu(x) / nu0, x=r/r_scale
     return scipy.special.kn(0,x)
 
-def exp_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
+def exp_number_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
     return np.exp(-x)
 
-def a2bg_density(x,beta,gamma):#nu(x) / nu0, x=r/r_scale
+def a2bg_number_density(x,beta,gamma):#nu(x) / nu0, x=r/r_scale
     return 1./(x**gamma)/(1.+x**2)**((beta-gamma)/2.)
 
-def a2bg_density_2d(x,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
+def a2bg_number_density_2d(x,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
     if x<1.e-50:
         x=1.e-50
     a=(beta-1.)/2.
@@ -190,10 +190,10 @@ def a2bg_density_2d(x,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
     hf1=scipy.special.hyp2f1(a,b,c,z1)  
     return x**(1.-beta)*hf1
     
-def abg_density(x,alpha,beta,gamma):#nu(x) / nu0, x=r/r_scale
+def abg_number_density(x,alpha,beta,gamma):#nu(x) / nu0, x=r/r_scale
     return 1./(x**gamma)/(1.+x**alpha)**((beta-gamma)/alpha)
 
-def abg_density_2d(x,alpha,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
+def abg_number_density_2d(x,alpha,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
     return np.nan #requires numerical integration, haven't implemented this yet
 
 def plum_number(x):#N(x) / N_tot, x=r/r_scale
@@ -385,7 +385,7 @@ def get_tracer(model,**params):
 
     class tracer:
 
-        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu0=None,sigma0=None,nscalenorm=None,ntotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,density=None,density_2d=None,number=None):
+        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu0=None,sigma0=None,nscalenorm=None,ntotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,number_density=None,number_density_2d=None,number=None):
 
             self.model=model
             self.luminosity_tot=luminosity_tot
@@ -400,61 +400,65 @@ def get_tracer(model,**params):
             self.gamma=gamma
             self.rhalf_2d=rhalf_2d
             self.rhalf_3d=rhalf_3d
-            self.density=density
-            self.density_2d=density_2d
+            self.number_density=number_density
+            self.number_density_2d=number_density_2d
             self.number=number
+            self.luminosity_density=luminosity_density
+            self.luminosity=luminosity
 
     if model=='plum':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.)
         nu0,sigma0=get_plum_scale(params['luminosity_tot'],params['r_scale'])
-        def density(x):
-            return plum_density(x)
-        def density_2d(x):
-            return plum_density_2d(x)
+        def number_density(x):
+            return plum_number_density(x)
+        def number_density_2d(x):
+            return plum_number_density_2d(x)
         def number(x):
             return plum_number(x)
-        
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=plum_nscalenorm(),ntotnorm=plum_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,density=density,density_2d=density_2d,number=number)
+        def luminosity_density(x):
+            return number_density(x)*params['luminosity_tot']/params['r_scale']**3/ntotnorm
+
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=plum_nscalenorm(),ntotnorm=plum_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=number_density*params['luminosity_tot']/plum_ntotnorm()/params['r_scale']**3,luminosity=number*params['luminosity_tot'])
 
     if model=='exp':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.)
         nu0,sigma0=get_exp_scale(params['luminosity_tot'],params['r_scale'])
-        def density(x):
-            return exp_density(x)
-        def density_2d(x):
-            return exp_density_2d(x)
+        def number_density(x):
+            return exp_number_density(x)
+        def number_density_2d(x):
+            return exp_number_density_2d(x)
         def number(x):
             return exp_number(x)
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=exp_nscalenorm(),ntotnorm=exp_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,density=density,density_2d=density_2d,number=number)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=exp_nscalenorm(),ntotnorm=exp_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=number_density*params['luminosity_tot']/exp_ntotnorm()/params['r_scale']**3,luminosity=number*params['luminosity_tot'])
     
     if model=='a2bg':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.,beta=params['beta'],gamma=params['gamma'])
         nu0,sigma0=get_a2bg_scale(params['luminosity_tot'],params['r_scale'],params['beta'],params['gamma'])
-        def density(x):
-            return a2bg_density(x,params['beta'],params['gamma'])
-        def density_2d(x):
-            return a2bg_density_2d(x,params['beta'],params['gamma'])
+        def number_density(x):
+            return a2bg_number_density(x,params['beta'],params['gamma'])
+        def number_density_2d(x):
+            return a2bg_number_density_2d(x,params['beta'],params['gamma'])
         def number(x):
             return a2bg_number(x,params['beta'],params['gamma'])
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=a2bg_nscalenorm(params['beta'],params['gamma']),ntotnorm=a2bg_ntotnorm(params['beta'],params['gamma']),beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,density=density,density_2d=density_2d,number=number)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=a2bg_nscalenorm(params['beta'],params['gamma']),ntotnorm=a2bg_ntotnorm(params['beta'],params['gamma']),beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=number_density*params['luminosity_tot']/a2bg_ntotnorm(params['beta'],params['gamma'])/params['r_scale']**3,luminosity=number*params['luminosity_tot'])
     
     if model=='abg':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'])
         nu0,sigma0=get_abg_scale(params['luminosity_tot'],params['r_scale'],params['alpha'],params['beta'],params['gamma'])
-        def density(x):
-            return abg_density(x,params['alpha'],params['beta'],params['gamma'])
-        def density_2d(x):
-            return abg_density_2d(x,params['alpha'],params['beta'],params['gamma'])
+        def number_density(x):
+            return abg_number_density(x,params['alpha'],params['beta'],params['gamma'])
+        def number_density_2d(x):
+            return abg_number_density_2d(x,params['alpha'],params['beta'],params['gamma'])
         def number(x):
             return abg_number(x,params['alpha'],params['beta'],params['gamma'])
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=abg_nscalenorm(params['alpha'],params['beta'],params['gamma']),ntotnorm=abg_ntotnorm(params['alpha'],params['beta'],params['gamma']),alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,density=density,density_2d=density_2d,number=number)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=abg_nscalenorm(params['alpha'],params['beta'],params['gamma']),ntotnorm=abg_ntotnorm(params['alpha'],params['beta'],params['gamma']),alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=number_density*params['luminosity_tot']/abg_ntotnorm(params['alpha'],params['beta'],params['gamma'])/params['r_scale']**3,luminosity=number*params['luminosity_tot'])
 
 def get_anisotropy(model,**params):
 
@@ -556,7 +560,7 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
         x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
         x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale# r / r_scale
         mass=dmhalo.mass(x_halo)+tracer.number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
-        return mass*tracer.density(x_tracer)*anisotropy.f_beta(x_beta)/x_halo**2
+        return mass*tracer.number_density(x_tracer)*anisotropy.f_beta(x_beta)/x_halo**2
     
     def integrand_los(x_halo,dmhalo,tracer,anisotropy):
         x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
@@ -616,7 +620,7 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
     def integrand1(x_halo,dmhalo,tracer):
         x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale# r / r_scale
         mass=dmhalo.mass(x_halo)+tracer.number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
-        return np.sqrt(1.-(bigx/x_halo)**2)*mass*tracer.density(x_tracer)/x_halo
+        return np.sqrt(1.-(bigx/x_halo)**2)*mass*tracer.number_density(x_tracer)/x_halo
     
     min0=bigx
     max0=params['upper_limit']
@@ -625,7 +629,7 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
 def projected_virial(x_halo,dmhalo,tracer):#computes integral for Wlos from Errani etal (2018)
     x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale
     totalmass=dmhalo.mass(x_halo)+tracer.number(x_tracer)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle
-    return x_halo*tracer.density(x_tracer)*totalmass
+    return x_halo*tracer.number_density(x_tracer)*totalmass
 
 def get_virial(dmhalo,tracer,**params):
     if not 'epsrel' in params:
