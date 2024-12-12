@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import astropy as ap
 import astropy.units as u
 
-g=0.004317*u.pc*(u.km)**2/u.M_sun/u.s**2#newton's G in units of km/s, pc, Msun
+g=0.004317#newton's G in units of km/s, pc, Msun
 
 def get_nfw_gc(c_triangle):
     return 1./(np.log(1.+c_triangle)-c_triangle/(1.+c_triangle))
