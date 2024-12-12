@@ -433,8 +433,12 @@ def get_tracer(model,**params):
             return exp_number_density_2d(x)
         def number(x):
             return exp_number(x)
+        def luminosity_density(x):
+            return number_density(x)*params['luminosity_tot']/exp_ntotnorm()/params['r_scale']**3
+        def luminosity(x):
+            return number_density(x)*params['luminosity_tot']
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=exp_nscalenorm(),ntotnorm=exp_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=number_density*params['luminosity_tot']/exp_ntotnorm()/params['r_scale']**3,luminosity=number*params['luminosity_tot'])
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=exp_nscalenorm(),ntotnorm=exp_ntotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=luminosity_density,luminosity=luminosity)
     
     if model=='a2bg':
 
@@ -446,8 +450,12 @@ def get_tracer(model,**params):
             return a2bg_number_density_2d(x,params['beta'],params['gamma'])
         def number(x):
             return a2bg_number(x,params['beta'],params['gamma'])
+        def luminosity_density(x):
+            return number_density(x)*params['luminosity_tot']/a2bg_ntotnorm(params['beta'],params['gamma'])/params['r_scale']**3
+        def luminosity(x):
+            return number_density(x)*params['luminosity_tot']
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=a2bg_nscalenorm(params['beta'],params['gamma']),ntotnorm=a2bg_ntotnorm(params['beta'],params['gamma']),beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=number_density*params['luminosity_tot']/a2bg_ntotnorm(params['beta'],params['gamma'])/params['r_scale']**3,luminosity=number*params['luminosity_tot'])
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=a2bg_nscalenorm(params['beta'],params['gamma']),ntotnorm=a2bg_ntotnorm(params['beta'],params['gamma']),beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=luminosity_density,luminosity=luminosity)
     
     if model=='abg':
 
@@ -459,8 +467,12 @@ def get_tracer(model,**params):
             return abg_number_density_2d(x,params['alpha'],params['beta'],params['gamma'])
         def number(x):
             return abg_number(x,params['alpha'],params['beta'],params['gamma'])
+        def luminosity_density(x):
+            return number_density(x)*params['luminosity_tot']/abg_ntotnorm(params['alpha'],params['beta'],params['gamma'])/params['r_scale']**3
+        def luminosity(x):
+            return number_density(x)*params['luminosity_tot']
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=abg_nscalenorm(params['alpha'],params['beta'],params['gamma']),ntotnorm=abg_ntotnorm(params['alpha'],params['beta'],params['gamma']),alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=number_density*params['luminosity_tot']/abg_ntotnorm(params['alpha'],params['beta'],params['gamma'])/params['r_scale']**3,luminosity=number*params['luminosity_tot'])
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,nscalenorm=abg_nscalenorm(params['alpha'],params['beta'],params['gamma']),ntotnorm=abg_ntotnorm(params['alpha'],params['beta'],params['gamma']),alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,number_density=number_density,number_density_2d=number_density_2d,number=number,luminosity_density=luminosity_density,luminosity=luminosity)
 
 def get_anisotropy(model,**params):
 
