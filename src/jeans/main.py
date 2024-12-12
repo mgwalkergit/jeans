@@ -20,7 +20,7 @@ def get_dehnen_cusp_gc(c_triangle):
 
 def get_nfw_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
     gc=get_nfw_gc(c_triangle)
-    if type(m_triangle) is ap.quantity.Quantity:
+    if type(m_triangle) is ap.units.quantity.Quantity:
         r_triangle=((2.*g*u.km**2*u.pc/u.s**2/u.M_sun*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     else:
         r_triangle=(2.*g.value*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
@@ -29,7 +29,7 @@ def get_nfw_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_
 
 def get_dehnen_core_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
     gc=get_dehnen_core_gc(c_triangle)
-    if type(m_triangle) is ap.quantity.Quantity:
+    if type(m_triangle) is ap.units.quantity.Quantity:
         r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     else:
         r_triangle=(2.*g.value*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
@@ -38,7 +38,7 @@ def get_dehnen_core_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale r
 
 def get_dehnen_cusp_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
     gc=get_dehnen_cusp_gc(c_triangle)
-    if type(m_triangle) is ap.quantity.Quantity:
+    if type(m_triangle) is ap.units.quantity.Quantity:
         r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     else:
         r_triangle=(2.*g.value*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
@@ -46,7 +46,7 @@ def get_dehnen_cusp_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale r
     return r_triangle,r_scale,gc*m_triangle/(4./2.)/np.pi/r_scale**3
 
 def get_abg_triangle_scale(triangle,h,m_triangle,c_triangle,alpha,beta,gamma):#r_triangle, scale radius r_s and scale density, rho_s, of abg halo, given triangle parameters, units of U(m_triangle)/U(r_triangle)**3
-    if type(m_triangle) is ap.quantity.Quantity:
+    if type(m_triangle) is ap.units.quantity.Quantity:
         r_triangle=((2.*g*m_triangle/triangle/h0**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     else:
         r_triangle=(2.*g.value*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
