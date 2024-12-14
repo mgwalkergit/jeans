@@ -327,7 +327,7 @@ def get_dmhalo(model,**params):
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return dehnen_cusp_enclosed_mass(x,params['c_triangle'])
 
-    elif model=='abg_triangle':
+    elif model=='abg':
 
         r_triangle,r_scale,rho_scale=get_abg_triangle_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
 
