@@ -607,17 +607,17 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     
         if 'los' in params['component']:
             if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
-                bigsigmasigmalos2=2.*g*u.km**2*u.pc/u.2**2/u.M_sun*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
+                bigsigmasigmalos2=2.*g*u.km**2*u.pc/u.s**2/u.M_sun*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
             else:
                 bigsigmasigmalos2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
         if 'rad' in params['component']:
             if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
-                bigsigmasigmarad2=2.*g*u.km**2*u.pc/u.2**2/u.M_sun*dmhalo.m_triangle*scipy.integrate.quad(integrand_rad,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_rad(X) * Sigma(X) / nu_scale
+                bigsigmasigmarad2=2.*g*u.km**2*u.pc/u.s**2/u.M_sun*dmhalo.m_triangle*scipy.integrate.quad(integrand_rad,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_rad(X) * Sigma(X) / nu_scale
             else:
                 bigsigmasigmarad2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_rad,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_rad(X) * Sigma(X) / nu_scale
         if 'tan' in params['component']:
             if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
-                bigsigmasigmatan2=2.*g*u.km**2*u.pc/u.2**2/u.M_sun*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu_scale
+                bigsigmasigmatan2=2.*g*u.km**2*u.pc/u.s**2/u.M_sun*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu_scale
             else:
                 bigsigmasigmatan2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu_scale
             
