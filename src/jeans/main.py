@@ -136,48 +136,48 @@ def abg_triangle_enclosed_mass(x,c_triangle,alpha,beta,gamma):# returns enclosed
     hf2=scipy.special.hyp2f1(a,b,c,z2)
     return ((cx/c_triangle)**(3.-gamma))*hf1/hf2
 
-def get_plum_scale(luminosity_tot,r_scale):#nu0, normalization factor for number density profile
-    nu0=3.*luminosity_tot/4./np.pi/r_scale**3
+def get_plum_scale(luminosity_tot,r_scale):#nu_scale, normalization factor for number density profile
+    nu_scale=3.*luminosity_tot/4./np.pi/r_scale**3
     sigma0=luminosity_tot/np.pi/r_scale**2
-    return nu0,sigma0
+    return nu_scale,sigma0
 
-def get_exp_scale(luminosity_tot,r_scale):#nu0, normalization factor for number density profile
-    nu0=luminosity_tot/2./np.pi**2/r_scale**3
+def get_exp_scale(luminosity_tot,r_scale):#nu_scale, normalization factor for number density profile
+    nu_scale=luminosity_tot/2./np.pi**2/r_scale**3
     sigma0=luminosity_tot/2./np.pi/r_scale**2
-    return nu0,sigma0
+    return nu_scale,sigma0
 
-def get_a2bg_scale(luminosity_tot,r_scale,beta,gamma):#nu0, normalization factor for number density profile
+def get_a2bg_scale(luminosity_tot,r_scale,beta,gamma):#nu_scale, normalization factor for number density profile
     alpha=2. 
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
     c=beta/2.
     d=(beta-3.)/alpha
-    nu0=luminosity_tot/2./np.pi/r_scale**3/scipy.special.gamma(d)/scipy.special.gamma(a)*scipy.special.gamma(b)
+    nu_scale=luminosity_tot/2./np.pi/r_scale**3/scipy.special.gamma(d)/scipy.special.gamma(a)*scipy.special.gamma(b)
     sigma0=luminosity_tot/4./np.sqrt(np.pi)/(r_scale**2)*(beta-3.)*scipy.special.gamma(b)/scipy.special.gamma(a)/scipy.special.gamma(c)
-    return nu0,sigma0
+    return nu_scale,sigma0
 
-def get_abg_scale(luminosity_tot,r_scale,alpha,beta,gamma):#nu0, normalization factor for number density profile
+def get_abg_scale(luminosity_tot,r_scale,alpha,beta,gamma):#nu_scale, normalization factor for number density profile
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
     c=beta/2.
     d=(beta-3.)/alpha
-    nu0=luminosity_tot/4./np.pi/r_scale**3*alpha*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(a)
+    nu_scale=luminosity_tot/4./np.pi/r_scale**3*alpha*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(a)
     sigma0=np.nan#haven't yet implemented, probably a numerical integration
-    return nu0,sigma0
+    return nu_scale,sigma0
 
-def plum_luminosity_density(x):#nu(x) / nu0, x=r/r_scale
+def plum_luminosity_density(x):#nu(x) / nu_scale, x=r/r_scale
     return 1./(1.+x**2)**(2.5)
 
 def plum_luminosity_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
     return 1./(1.+x**2)**2
 
-def exp_luminosity_density(x):#nu(x) / nu0, x=r/r_scale
+def exp_luminosity_density(x):#nu(x) / nu_scale, x=r/r_scale
     return scipy.special.kn(0,x)
 
 def exp_luminosity_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
     return np.exp(-x)
 
-def a2bg_luminosity_density(x,beta,gamma):#nu(x) / nu0, x=r/r_scale
+def a2bg_luminosity_density(x,beta,gamma):#nu(x) / nu_scale, x=r/r_scale
     return 1./(x**gamma)/(1.+x**2)**((beta-gamma)/2.)
 
 def a2bg_luminosity_density_2d(x,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
@@ -190,7 +190,7 @@ def a2bg_luminosity_density_2d(x,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
     hf1=scipy.special.hyp2f1(a,b,c,z1)  
     return x**(1.-beta)*hf1
     
-def abg_luminosity_density(x,alpha,beta,gamma):#nu(x) / nu0, x=r/r_scale
+def abg_luminosity_density(x,alpha,beta,gamma):#nu(x) / nu_scale, x=r/r_scale
     return 1./(x**gamma)/(1.+x**alpha)**((beta-gamma)/alpha)
 
 def abg_luminosity_density_2d(x,alpha,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
@@ -229,13 +229,13 @@ def abg_enclosed_luminosity(x,alpha,beta,gamma):#L(x)/luminosity_tot, x=r/r_scal
     #return (x**(3.-gamma))*hf1/hf2 #should be equivalent to below
     return alpha/(3.-gamma)*(x**(3.-gamma))*hf1*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(a)
 
-def plum_lscalenorm():#L(r_scale)/(nu0 *r_scale**3)
+def plum_lscalenorm():#L(r_scale)/(nu_scale *r_scale**3)
     return 4.*np.pi/3./(2.**1.5)
 
-def exp_lscalenorm():#L(r_scale)/(nu0 *r_scale**3)
+def exp_lscalenorm():#L(r_scale)/(nu_scale *r_scale**3)
     return 2.*np.pi/3.*(3.*np.pi*scipy.special.kn(2,1.)*scipy.special.modstruve(1,1.)+scipy.special.kn(1,1.)*(3.*np.pi*scipy.special.modstruve(2,1.)-4.))
 
-def a2bg_lscalenorm(beta,gamma):#L(r_scale)/(nu0 * r_scale**3)
+def a2bg_lscalenorm(beta,gamma):#L(r_scale)/(nu_scale * r_scale**3)
     alpha=2.
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
@@ -244,7 +244,7 @@ def a2bg_lscalenorm(beta,gamma):#L(r_scale)/(nu0 * r_scale**3)
     hf2=scipy.special.hyp2f1(a,b,c,z2)
     return 4.*np.pi/(3.-gamma)*hf2
     
-def abg_lscalenorm(alpha,beta,gamma):#L(r_scale)/(nu0 * r_scale**3)
+def abg_lscalenorm(alpha,beta,gamma):#L(r_scale)/(nu_scale * r_scale**3)
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
     c=(3.-gamma+alpha)/alpha
@@ -252,13 +252,13 @@ def abg_lscalenorm(alpha,beta,gamma):#L(r_scale)/(nu0 * r_scale**3)
     hf2=scipy.special.hyp2f1(a,b,c,z2)
     return 4.*np.pi/(3.-gamma)*hf2
 
-def plum_ltotnorm():#L(r=infinity)/(nu0 * r_scale**3)
+def plum_ltotnorm():#L(r=infinity)/(nu_scale * r_scale**3)
     return 4.*np.pi/3.
 
-def exp_ltotnorm():#L(r=infinity)/(nu0 * r_scale**3)
+def exp_ltotnorm():#L(r=infinity)/(nu_scale * r_scale**3)
     return 2.*(np.pi**2)
 
-def a2bg_ltotnorm(beta,gamma):#L(r=infinity)/(nu0 * r_scale**3)
+def a2bg_ltotnorm(beta,gamma):#L(r=infinity)/(nu_scale * r_scale**3)
     alpha=2.
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
@@ -266,7 +266,7 @@ def a2bg_ltotnorm(beta,gamma):#L(r=infinity)/(nu0 * r_scale**3)
     d=(beta-3.)/alpha
     return 2.*np.pi*scipy.special.gamma(d)*scipy.special.gamma(a)/scipy.special.gamma(b)
 
-def abg_ltotnorm(alpha,beta,gamma):#L(r=infinity)/(nu0 * r_scale**3)
+def abg_ltotnorm(alpha,beta,gamma):#L(r=infinity)/(nu_scale * r_scale**3)
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
     #c=(3.-gamma+alpha)/alpha
@@ -388,13 +388,13 @@ def get_tracer(model,**params):
 
     class tracer:
 
-        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu0=None,sigma0=None,lscalenorm=None,ltotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,luminosity_density=None,luminosity_density_2d=None,enclosed_luminosity=None):
+        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu_scale=None,sigma0=None,lscalenorm=None,ltotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,luminosity_density=None,luminosity_density_2d=None,enclosed_luminosity=None):
 
             self.model=model
             self.luminosity_tot=luminosity_tot
             self.upsilon=upsilon
             self.r_scale=r_scale
-            self.nu0=nu0
+            self.nu_scale=nu_scale
             self.sigma0=sigma0
             self.lscalenorm=lscalenorm
             self.ltotnorm=ltotnorm
@@ -410,7 +410,7 @@ def get_tracer(model,**params):
     if model=='plum':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.)
-        nu0,sigma0=get_plum_scale(params['luminosity_tot'],params['r_scale'])
+        nu_scale,sigma0=get_plum_scale(params['luminosity_tot'],params['r_scale'])
         def luminosity_density(x):
             return plum_luminosity_density(x)
         def luminosity_density_2d(x):
@@ -418,12 +418,12 @@ def get_tracer(model,**params):
         def enclosed_luminosity(x):
             return plum_enclosed_luminosity(x)
 
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,lscalenorm=plum_lscalenorm(),ltotnorm=plum_ltotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu_scale=nu_scale,sigma0=sigma0,lscalenorm=plum_lscalenorm(),ltotnorm=plum_ltotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
 
     if model=='exp':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.)
-        nu0,sigma0=get_exp_scale(params['luminosity_tot'],params['r_scale'])
+        nu_scale,sigma0=get_exp_scale(params['luminosity_tot'],params['r_scale'])
         def luminosity_density(x):
             return exp_luminosity_density(x)
         def luminosity_density_2d(x):
@@ -431,12 +431,12 @@ def get_tracer(model,**params):
         def enclosed_luminosity(x):
             return exp_enclosed_luminosity(x)
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,lscalenorm=exp_lscalenorm(),ltotnorm=exp_ltotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu_scale=nu_scale,sigma0=sigma0,lscalenorm=exp_lscalenorm(),ltotnorm=exp_ltotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
     
     if model=='a2bg':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.,beta=params['beta'],gamma=params['gamma'])
-        nu0,sigma0=get_a2bg_scale(params['luminosity_tot'],params['r_scale'],params['beta'],params['gamma'])
+        nu_scale,sigma0=get_a2bg_scale(params['luminosity_tot'],params['r_scale'],params['beta'],params['gamma'])
         def luminosity_density(x):
             return a2bg_luminosity_density(x,params['beta'],params['gamma'])
         def luminosity_density_2d(x):
@@ -444,12 +444,12 @@ def get_tracer(model,**params):
         def enclosed_luminosity(x):
             return a2bg_enclosed_luminosity(x,params['beta'],params['gamma'])
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,lscalenorm=a2bg_lscalenorm(params['beta'],params['gamma']),ltotnorm=a2bg_ltotnorm(params['beta'],params['gamma']),beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu_scale=nu_scale,sigma0=sigma0,lscalenorm=a2bg_lscalenorm(params['beta'],params['gamma']),ltotnorm=a2bg_ltotnorm(params['beta'],params['gamma']),beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
     
     if model=='abg':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'])
-        nu0,sigma0=get_abg_scale(params['luminosity_tot'],params['r_scale'],params['alpha'],params['beta'],params['gamma'])
+        nu_scale,sigma0=get_abg_scale(params['luminosity_tot'],params['r_scale'],params['alpha'],params['beta'],params['gamma'])
         def luminosity_density(x):
             return abg_luminosity_density(x,params['alpha'],params['beta'],params['gamma'])
         def luminosity_density_2d(x):
@@ -457,7 +457,7 @@ def get_tracer(model,**params):
         def enclosed_luminosity(x):
             return abg_enclosed_luminosity(x,params['alpha'],params['beta'],params['gamma'])
         
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu0=nu0,sigma0=sigma0,lscalenorm=abg_lscalenorm(params['alpha'],params['beta'],params['gamma']),ltotnorm=abg_ltotnorm(params['alpha'],params['beta'],params['gamma']),alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu_scale=nu_scale,sigma0=sigma0,lscalenorm=abg_lscalenorm(params['alpha'],params['beta'],params['gamma']),ltotnorm=abg_ltotnorm(params['alpha'],params['beta'],params['gamma']),alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
 
 def get_anisotropy(model,**params):
 
@@ -491,12 +491,12 @@ def get_rhalf(model,r_scale,**params):
     if model=='plum':
         rhalf_2d=r_scale
         rhalf_3d=1.30476909*r_scale
-        nu0=3*params['bigsigma0']/4/r_scale
+        nu_scale=3*params['bigsigma0']/4/r_scale
         ntot=(1.-params['ellipticity'])*np.pi*r_scale**2*params['bigsigma0']
     elif model=='exp':
         rhalf_2d=1.67835*r_scale
         rhalf_3d=2.22352*r_scale
-        nu0=params['bigsigma0']/np.pi/r_scale
+        nu_scale=params['bigsigma0']/np.pi/r_scale
         ntot=(1.-params['ellipticity'])*2.*np.pi*r_scale**2*params['bigsigma0']
     elif model=='a2bg':
         def rootfind_2bg_2d(x,beta,gamma):
@@ -507,7 +507,7 @@ def get_rhalf(model,r_scale,**params):
         high0=1.e+20
         rhalf_2d=r_scale*scipy.optimize.brentq(rootfind_2bg_2d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=1000,full_output=False,disp=True)
         rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_2bg_3d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
-        nu0=params['bigsigma0']*scipy.special.gamma(params['beta']/2)/np.sqrt(np.pi)/r_scale/scipy.special.gamma((params['beta']-1)/2)
+        nu_scale=params['bigsigma0']*scipy.special.gamma(params['beta']/2)/np.sqrt(np.pi)/r_scale/scipy.special.gamma((params['beta']-1)/2)
         ntot=(1.-params['ellipticity'])*4.*np.sqrt(np.pi)*r_scale**2*params['bigsigma0']/(params['beta']-3)*scipy.special.gamma((3-params['gamma'])/2)*scipy.special.gamma(params['beta']/2)/scipy.special.gamma((params['beta']-params['gamma'])/2)
 
     elif model=='abg':
@@ -524,14 +524,14 @@ def get_rhalf(model,r_scale,**params):
         high0=1.e+20
         rhalf_2d=np.nan#not computed yet, projection of abg model requires numerical integration
         rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_abg_3d,low0,high0,args=(params['alpha'],params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
-        nu0=np.nan#not yet computed
+        nu_scale=np.nan#not yet computed
         ntot=np.nan#not yet computed
 
     elif model=='captured_truncated':
         return
     else:
         raise ValueError('error in model specification')
-    return rhalf_2d,rhalf_3d,nu0,ntot
+    return rhalf_2d,rhalf_3d,nu_scale,ntot
     
 
 def integrate(bigx,dmhalo,tracer,anisotropy,**params):
@@ -594,15 +594,15 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
         
         if '3d' in params['component']:
             x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
-            nusigmarad2=g*dmhalo.m_triangle/dmhalo.r_triangle/anisotropy.f_beta(x_beta)*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_r(x) * nu(x) / nu0, sigma_r(x) is 3D radial velocity dispersion at x=r/r_triangle
-            nusigmatan2=nusigmar2*(1.-anisotropy.beta(x_beta))#sigma^2_t(x) * nu(x) / nu0, sigma_t(x) is 3D tangential velocity dispersion at x=r/r_triangle, equals both the theta component and the phi component
+            nusigmarad2=g*dmhalo.m_triangle/dmhalo.r_triangle/anisotropy.f_beta(x_beta)*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_r(x) * nu(x) / nu_scale, sigma_r(x) is 3D radial velocity dispersion at x=r/r_triangle
+            nusigmatan2=nusigmar2*(1.-anisotropy.beta(x_beta))#sigma^2_t(x) * nu(x) / nu_scale, sigma_t(x) is 3D tangential velocity dispersion at x=r/r_triangle, equals both the theta component and the phi component
     
         if 'los' in params['component']:
-            bigsigmasigmalos2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu0
+            bigsigmasigmalos2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
         if 'rad' in params['component']:
-            bigsigmasigmarad2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_rad,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_rad(X) * Sigma(X) / nu0
+            bigsigmasigmarad2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_rad,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_rad(X) * Sigma(X) / nu_scale
         if 'tan' in params['component']:
-            bigsigmasigmatan2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu0
+            bigsigmasigmatan2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu_scale
             
     return jeans_integral(bigsigmasigmalos2=bigsigmasigmalos2,bigsigmasigmarad2=bigsigmasigmarad2,bigsigmasigmatan2=bigsigmasigmatan2,nusigmarad2=nusigmarad2,nusigmatan2=nusigmatan2)
 
@@ -623,7 +623,7 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
     
     min0=bigx
     max0=params['upper_limit']
-    return 2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu0
+    return 2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu_scale
 
 def projected_virial(x_halo,dmhalo,tracer):#computes integral for Wlos from Errani etal (2018)
     x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale
