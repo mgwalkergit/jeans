@@ -375,7 +375,7 @@ def get_dmhalo(model,**params):
         return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
     if model=='dehnen_cusp':
         return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
-    elif model=='abg_triangle':
+    elif model=='abg':
         return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
     elif model=='cnfw':
         return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
