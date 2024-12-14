@@ -549,7 +549,7 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
         params['limit']=50
 
     class jeans_integral:
-        def __init__(selfsigma_2d_los=None,sigma_2d_rad=None,sigma_2d_tan=None,sigma_3d_rad=None,sigma_3d_tan=None):
+        def __init__(self,sigma_2d_los=None,sigma_2d_rad=None,sigma_2d_tan=None,sigma_3d_rad=None,sigma_3d_tan=None):
             self.sigma_2d_los=sigma_2d_los
             self.sigma_2d_rad=sigma_2d_rad
             self.sigma_2d_tan=sigma_2d_tan
