@@ -8,6 +8,7 @@ import astropy as ap
 import astropy.units as u
 
 g=0.004317#newton's G in units of km/s, pc, Msun
+g_dim=g*u.km**2*u.pc/u.s**2/u.M_sun#now as an astropy.units quantity
 
 def get_nfw_gc(c_triangle):
     return 1./(np.log(1.+c_triangle)-c_triangle/(1.+c_triangle))
@@ -21,7 +22,7 @@ def get_dehnen_cusp_gc(c_triangle):
 def get_nfw_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
     gc=get_nfw_gc(c_triangle)
     if type(m_triangle) is ap.units.quantity.Quantity:
-        r_triangle=((2.*g*u.km**2*u.pc/u.s**2/u.M_sun*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+        r_triangle=((2.*g_dim*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     else:
         r_triangle=(2.*g*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
@@ -30,7 +31,7 @@ def get_nfw_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_
 def get_dehnen_core_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
     gc=get_dehnen_core_gc(c_triangle)
     if type(m_triangle) is ap.units.quantity.Quantity:
-        r_triangle=((2.*g*u.km**2*u.pc/u.s**2/u.M_sun*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+        r_triangle=((2.*g_dim*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     else:
         r_triangle=(2.*g*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
@@ -39,7 +40,7 @@ def get_dehnen_core_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale r
 def get_dehnen_cusp_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale radius r_s and scale density rho_s, of NFW halo, units of pc and U(m_triangle) / u(r_scale)**3
     gc=get_dehnen_cusp_gc(c_triangle)
     if type(m_triangle) is ap.units.quantity.Quantity:
-        r_triangle=((2.*g*u.km**2*u.pc/u.s**2/u.M_sun*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+        r_triangle=((2.*g_dim*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     else:
         r_triangle=(2.*g*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
@@ -47,7 +48,7 @@ def get_dehnen_cusp_scale(triangle,h,m_triangle,c_triangle):#r_triangle, scale r
 
 def get_abg_triangle_scale(triangle,h,m_triangle,c_triangle,alpha,beta,gamma):#r_triangle, scale radius r_s and scale density, rho_s, of abg halo, given triangle parameters, units of U(m_triangle)/U(r_triangle)**3
     if type(m_triangle) is ap.units.quantity.Quantity:
-        r_triangle=((2.*g*u.km**2*u.pc/u.s**2/u.M_sun*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
+        r_triangle=((2.*g_dim*m_triangle/triangle/(h*100.*u.km/u.s/u.Mpc)**2)**(1/3)).to(u.pc)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     else:
         r_triangle=(2.*g*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
@@ -356,7 +357,7 @@ def get_dmhalo(model,**params):
         
     def vcirc(x):# returns circular velocity, km/s
         if type(params['m_triangle']) is ap.units.quantity.Quantity:
-            return np.sqrt(g*u.km**2*u.pc/u.s**2/u.M_sun*enclosed_mass(x)*params['m_triangle']/(x*r_triangle))
+            return np.sqrt(g_dim*enclosed_mass(x)*params['m_triangle']/(x*r_triangle))
         else:
             return np.sqrt(g*enclosed_mass(x)*params['m_triangle']/(x*r_triangle))
             
@@ -548,12 +549,7 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
         params['limit']=50
 
     class jeans_integral:
-        def __init__(self,bigsigmasigmalos2=None,bigsigmasigmarad2=None,bigsigmasigmatan2=None,nusigmarad2=None,nusigmatan2=None,sigma_2d_los=None,sigma_2d_rad=None,sigma_2d_tan=None,sigma_3d_rad=None,sigma_3d_tan=None):
-            self.bigsigmasigmalos2=bigsigmasigmalos2
-            self.bigsigmasigmarad2=bigsigmasigmarad2
-            self.bigsigmasigmatan2=bigsigmasigmatan2
-            self.nusigmarad2=nusigmarad2
-            self.nusigmatan2=nusigmatan2
+        def __init__(selfsigma_2d_los=None,sigma_2d_rad=None,sigma_2d_tan=None,sigma_3d_rad=None,sigma_3d_tan=None):
             self.sigma_2d_los=sigma_2d_los
             self.sigma_2d_rad=sigma_2d_rad
             self.sigma_2d_tan=sigma_2d_tan
@@ -602,7 +598,7 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
             x_halo=bigx#this is now the 3D radius, r/r_triangle, for purpose of the 3D integral
             x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
             if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
-                nusigmarad2=g*u.km**2*u.pc/u.s**2/u.M_sun*dmhalo.m_triangle/dmhalo.r_triangle/anisotropy.f_beta(x_beta)*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_r(x) * nu(x) / nu_scale, sigma_r(x) is 3D radial velocity dispersion at x=r/r_triangle
+                nusigmarad2=g_dim*dmhalo.m_triangle/dmhalo.r_triangle/anisotropy.f_beta(x_beta)*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_r(x) * nu(x) / nu_scale, sigma_r(x) is 3D radial velocity dispersion at x=r/r_triangle
             else:
                 nusigmarad2=g*dmhalo.m_triangle/dmhalo.r_triangle/anisotropy.f_beta(x_beta)*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_r(x) * nu(x) / nu_scale, sigma_r(x) is 3D radial velocity dispersion at x=r/r_triangle
 
@@ -610,17 +606,17 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
                 
         if 'los' in params['component']:
             if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
-                bigsigmasigmalos2=2.*g*u.km**2*u.pc/u.s**2/u.M_sun*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
+                bigsigmasigmalos2=2.*g_dim*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
             else:
                 bigsigmasigmalos2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_los,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
         if 'rad' in params['component']:
             if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
-                bigsigmasigmarad2=2.*g*u.km**2*u.pc/u.s**2/u.M_sun*dmhalo.m_triangle*scipy.integrate.quad(integrand_rad,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_rad(X) * Sigma(X) / nu_scale
+                bigsigmasigmarad2=2.*g_dim*dmhalo.m_triangle*scipy.integrate.quad(integrand_rad,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_rad(X) * Sigma(X) / nu_scale
             else:
                 bigsigmasigmarad2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_rad,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_rad(X) * Sigma(X) / nu_scale
         if 'tan' in params['component']:
             if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
-                bigsigmasigmatan2=2.*g*u.km**2*u.pc/u.s**2/u.M_sun*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu_scale
+                bigsigmasigmatan2=2.*g_dim*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu_scale
             else:
                 bigsigmasigmatan2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu_scale
             
@@ -629,7 +625,7 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
         sigma_2d_tan=np.sqrt(bigsigmasigmatan2/(tracer.luminosity_density_2d(bigx_tracer)*tracer.sigma0/tracer.nu_scale))
         sigma_3d_rad=np.sqrt(nusigmarad2/(tracer.luminosity_density(bigx_tracer)))
         sigma_3d_tan=np.sqrt(nusigmatan2/(tracer.luminosity_density(bigx_tracer)))
-    return jeans_integral(bigsigmasigmalos2=bigsigmasigmalos2,bigsigmasigmarad2=bigsigmasigmarad2,bigsigmasigmatan2=bigsigmasigmatan2,nusigmarad2=nusigmarad2,nusigmatan2=nusigmatan2,sigma_2d_los=sigma_2d_los,sigma_2d_rad=sigma_2d_rad,sigma_2d_tan=sigma_2d_tan,sigma_3d_rad=sigma_3d_rad,sigma_3d_tan=sigma_3d_tan)
+    return jeans_integral(sigma_2d_los=sigma_2d_los,sigma_2d_rad=sigma_2d_rad,sigma_2d_tan=sigma_2d_tan,sigma_3d_rad=sigma_3d_rad,sigma_3d_tan=sigma_3d_tan)
 
 def integrate_isotropic(bigx,dmhalo,tracer,**params):
     if not 'upper_limit' in params:#default upper limit is infinity, common alternative is dmhalo.r_triangle
@@ -648,7 +644,10 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
     
     min0=bigx
     max0=params['upper_limit']
-    return 2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu_scale
+    if type(m_triangle) is ap.units.quantity.Quantity:
+        return 2.*g_dim*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu_scale
+    else:
+        return 2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu_scale
 
 def projected_virial(x_halo,dmhalo,tracer):#computes integral for Wlos from Errani etal (2018)
     x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale
@@ -667,5 +666,8 @@ def get_virial(dmhalo,tracer,**params):
     max0=np.inf
     val1=scipy.integrate.quad(projected_virial,min0,max0,args=(dmhalo,tracer),epsabs=params['epsabs'],epsrel=params['epsrel'],limit=params['limit'])
     vvar=val1[0]*4.*np.pi*g/3.*dmhalo.m_triangle*(dmhalo.r_triangle**2)/tracer.ltotnorm/tracer.r_scale**3
-    mu=g*(dmhalo.enclosed_mass(tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon)*dmhalo.m_triangle/tracer.rhalf_2d/vvar
+    if type(m_triangle) is ap.units.quantity.Quantity:
+        mu=g_dim*(dmhalo.enclosed_mass(tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon)*dmhalo.m_triangle/tracer.rhalf_2d/vvar
+    else:
+        mu=g*(dmhalo.enclosed_mass(tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon)*dmhalo.m_triangle/tracer.rhalf_2d/vvar
     return vvar,mu
