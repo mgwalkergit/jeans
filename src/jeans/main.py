@@ -606,7 +606,7 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
             else:
                 nusigmarad2=g*dmhalo.m_triangle/dmhalo.r_triangle/anisotropy.f_beta(x_beta)*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_r(x) * nu(x) / nu_scale, sigma_r(x) is 3D radial velocity dispersion at x=r/r_triangle
 
-            nusigmatan2=nusigmar2*(1.-anisotropy.beta(x_beta))#sigma^2_t(x) * nu(x) / nu_scale, sigma_t(x) is 3D tangential velocity dispersion at x=r/r_triangle, equals both the theta component and the phi component
+            nusigmatan2=nusigmarad2*(1.-anisotropy.beta(x_beta))#sigma^2_t(x) * nu(x) / nu_scale, sigma_t(x) is 3D tangential velocity dispersion at x=r/r_triangle, equals both the theta component and the phi component
                 
         if 'los' in params['component']:
             if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
