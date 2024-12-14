@@ -599,6 +599,7 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     else:
         
         if '3d' in params['component']:
+            x_halo=bigx#this is now the 3D radius, r/r_triangle, for purpose of the 3D integral
             x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
             if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
                 nusigmarad2=g*u.km**2*u.pc/u.s**2/u.M_sun*dmhalo.m_triangle/dmhalo.r_triangle/anisotropy.f_beta(x_beta)*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_r(x) * nu(x) / nu_scale, sigma_r(x) is 3D radial velocity dispersion at x=r/r_triangle
