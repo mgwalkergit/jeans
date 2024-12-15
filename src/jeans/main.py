@@ -549,12 +549,12 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
         params['limit']=50
 
     class jeans_integral:
-        def __init__(self,sigma_2d_los=None,sigma_2d_rad=None,sigma_2d_tan=None,sigma_3d_rad=None,sigma_3d_tan=None):
-            self.sigma_2d_los=sigma_2d_los
-            self.sigma_2d_rad=sigma_2d_rad
-            self.sigma_2d_tan=sigma_2d_tan
-            self.sigma_3d_rad=sigma_3d_rad
-            self.sigma_3d_tan=sigma_3d_tan
+        def __init__(self,sigma_proj_los=None,sigma_proj_rad=None,sigma_proj_tan=None,sigma_rad=None,sigma_tan=None):
+            self.sigma_proj_los=sigma_proj_los
+            self.sigma_proj_rad=sigma_proj_rad
+            self.sigma_proj_tan=sigma_proj_tan
+            self.sigma_rad=sigma_rad
+            self.sigma_tan=sigma_tan
         
     def integrand1(x_halo,dmhalo,tracer,anisotropy):
         x_beta=x_halo*dmhalo.r_triangle/tracer.r_scale/anisotropy.r_beta# r / r_beta
@@ -587,10 +587,10 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     max0=params['upper_limit']
     bigx_tracer=bigx*dmhalo.r_triangle/tracer.r_scale
     
-    bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2,sigma_2d_los,sigma_2d_rad,sigma_2d_tan,sigma_3d_rad,sigma_3d_tan=np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan
+    bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2,sigma_proj_los,sigma_proj_rad,sigma_proj_tan,sigma_rad,sigma_tan=np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan
     
     if min0==max0:
-        bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2,sigma_2d_los,sigma_2d_rad,sigma_2d_tan,sigma_3d_rad,sigma_3d_tan=0.,0.,0.,0.,0.,0.,0.,0.,0.,0.
+        bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2,sigma_proj_los,sigma_proj_rad,sigma_proj_tan,sigma_rad,sigma_tan=0.,0.,0.,0.,0.,0.,0.,0.,0.,0.
         
     else:
         
@@ -620,12 +620,12 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
             else:
                 bigsigmasigmatan2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand_tan,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_tan(X) * Sigma(X) / nu_scale
             
-        sigma_2d_los=np.sqrt(bigsigmasigmalos2/(tracer.luminosity_density_2d(bigx_tracer)*tracer.sigma0/tracer.nu_scale))
-        sigma_2d_rad=np.sqrt(bigsigmasigmarad2/(tracer.luminosity_density_2d(bigx_tracer)*tracer.sigma0/tracer.nu_scale))
-        sigma_2d_tan=np.sqrt(bigsigmasigmatan2/(tracer.luminosity_density_2d(bigx_tracer)*tracer.sigma0/tracer.nu_scale))
-        sigma_3d_rad=np.sqrt(nusigmarad2/(tracer.luminosity_density(bigx_tracer)))
-        sigma_3d_tan=np.sqrt(nusigmatan2/(tracer.luminosity_density(bigx_tracer)))
-    return jeans_integral(sigma_2d_los=sigma_2d_los,sigma_2d_rad=sigma_2d_rad,sigma_2d_tan=sigma_2d_tan,sigma_3d_rad=sigma_3d_rad,sigma_3d_tan=sigma_3d_tan)
+        sigma_proj_los=np.sqrt(bigsigmasigmalos2/(tracer.luminosity_density_2d(bigx_tracer)*tracer.sigma0/tracer.nu_scale))
+        sigma_proj_rad=np.sqrt(bigsigmasigmarad2/(tracer.luminosity_density_2d(bigx_tracer)*tracer.sigma0/tracer.nu_scale))
+        sigma_proj_tan=np.sqrt(bigsigmasigmatan2/(tracer.luminosity_density_2d(bigx_tracer)*tracer.sigma0/tracer.nu_scale))
+        sigma_rad=np.sqrt(nusigmarad2/(tracer.luminosity_density(bigx_tracer)))
+        sigma_tan=np.sqrt(nusigmatan2/(tracer.luminosity_density(bigx_tracer)))
+    return jeans_integral(sigma_proj_los=sigma_proj_los,sigma_proj_rad=sigma_proj_rad,sigma_proj_tan=sigma_proj_tan,sigma_rad=sigma_rad,sigma_tan=sigma_tan)
 
 def integrate_isotropic(bigx,dmhalo,tracer,**params):
     if not 'upper_limit' in params:#default upper limit is infinity, common alternative is dmhalo.r_triangle
