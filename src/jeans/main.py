@@ -655,6 +655,8 @@ def projected_virial(x_halo,dmhalo,tracer):#computes integral for Wlos from Erra
     return x_halo*tracer.luminosity_density(x_tracer)*totalmass
 
 def get_virial(dmhalo,tracer,**params):
+    if not 'lamb' in params:
+        params['lamb']=1.
     if not 'epsrel' in params:
         params['epsrel']=1.e-13
     if not 'epsabs' in params:
@@ -667,8 +669,8 @@ def get_virial(dmhalo,tracer,**params):
     val1=scipy.integrate.quad(projected_virial,min0,max0,args=(dmhalo,tracer),epsabs=params['epsabs'],epsrel=params['epsrel'],limit=params['limit'])
     if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
         vvar=val1[0]*4.*np.pi*g_dim/3.*dmhalo.m_triangle*(dmhalo.r_triangle**2)/tracer.ltotnorm/tracer.r_scale**3
-        mu=g_dim*(dmhalo.enclosed_mass(tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle)*dmhalo.m_triangle/tracer.rhalf_2d/vvar
+        mu=g_dim*(dmhalo.enclosed_mass(params['lamb']*tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(params['lamb']*tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle)*dmhalo.m_triangle/params['lamb']/tracer.rhalf_2d/vvar
     else:
         vvar=val1[0]*4.*np.pi*g/3.*dmhalo.m_triangle*(dmhalo.r_triangle**2)/tracer.ltotnorm/tracer.r_scale**3
-        mu=g*(dmhalo.enclosed_mass(tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle)*dmhalo.m_triangle/tracer.rhalf_2d/vvar
+        mu=g*(dmhalo.enclosed_mass(params['lamb']*tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(params['lamb']*tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle)*dmhalo.m_triangle/params['lamb']/tracer.rhalf_2d/vvar
     return vvar,mu.value
