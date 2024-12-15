@@ -6,7 +6,8 @@ import warnings
 import matplotlib.pyplot as plt
 import astropy as ap
 import astropy.units as u
-from astropy.units.quantity_helper import UFUNC_HELPERS, helper_dimensionless_to_dimensionless
+from astropy.units.quantity_helper import UFUNC_HELPERS#,helper_dimensionless_to_dimensionless
+from astropy.units.quantity_helper.helpers import helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[scipy.special.erf,scipy.special.modstruve] = helper_dimensionless_to_dimensionless
 
 g=0.004317#newton's G in units of km/s, pc, Msun
