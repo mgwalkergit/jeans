@@ -185,12 +185,17 @@ def a2bg_luminosity_density(x,beta,gamma):#nu(x) / nu_scale, x=r/r_scale
     return 1./(x**gamma)/(1.+x**2)**((beta-gamma)/2.)
 
 def a2bg_luminosity_density_2d(x,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
-    if x<1.e-50:
-        x=1.e-50
     a=(beta-1.)/2.
     b=(beta-gamma)/2.
     c=beta/2.
-    z1=-1./x**2
+    if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
+        z1=-1./x.value**2
+        if ((type(x.value) is list)|(type(x.value) is np.ndarray)):
+            z1[x.value<1.e-50]=-1.e+50
+    else:
+        z1=-1./x**2
+        if ((type(x) is list)|(type(x) is np.ndarray)):
+            z1[x<1.e-50]=-1.e+50
     hf1=scipy.special.hyp2f1(a,b,c,z1)  
     return x**(1.-beta)*hf1
     
