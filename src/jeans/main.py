@@ -6,9 +6,9 @@ import warnings
 import matplotlib.pyplot as plt
 import astropy as ap
 import astropy.units as u
-from astropy.units.quantity_helper import UFUNC_HELPERS#,helper_dimensionless_to_dimensionless
-from astropy.units.quantity_helper.helpers import helper_dimensionless_to_dimensionless
-UFUNC_HELPERS[scipy.special.erf,scipy.special.modstruve] = helper_dimensionless_to_dimensionless
+#from astropy.units.quantity_helper import UFUNC_HELPERS#,helper_dimensionless_to_dimensionless
+#from astropy.units.quantity_helper.helpers import helper_dimensionless_to_dimensionless
+#UFUNC_HELPERS[scipy.special.erf,scipy.special.modstruve] = helper_dimensionless_to_dimensionless
 
 g=0.004317#newton's G in units of km/s, pc, Msun
 g_dim=g*u.km**2*u.pc/u.s**2/u.M_sun#now as an astropy.units quantity
@@ -204,10 +204,12 @@ def plum_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
     return (x**3)/(1.+x**2)**(1.5)
 
 def exp_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
-    result=1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x)*scipy.special.modstruve(1,x)+scipy.special.kn(1,x)*(3.*np.pi*scipy.special.modstruve(2,x)-4.*x))
-    if ((type(x) is list)|(type(x) is np.ndarray)):
-        result[x>100.]=1.
-    elif ((type(x) is float)|(type(x) is int)|(type(x) is np.float64)):
+    if type(x) is ap.units.quantity.Quantity:
+        result=1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x.value)*scipy.special.modstruve(1,x.value)+scipy.special.kn(1,x.value)*(3.*np.pi*scipy.special.modstruve(2,x.value)-4.*x.value))
+        if x.value>100.:
+            result=1.
+    else:
+        result=1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x)*scipy.special.modstruve(1,x)+scipy.special.kn(1,x)*(3.*np.pi*scipy.special.modstruve(2,x)-4.*x))
         if x>100:
             result=1.
     return result
