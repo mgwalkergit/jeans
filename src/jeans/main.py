@@ -673,4 +673,4 @@ def get_virial(dmhalo,tracer,**params):
     else:
         vvar=val1[0]*4.*np.pi*g/3.*dmhalo.m_triangle*(dmhalo.r_triangle**2)/tracer.ltotnorm/tracer.r_scale**3
         mu=g*(dmhalo.enclosed_mass(params['lamb']*tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(params['lamb']*tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle)*dmhalo.m_triangle/params['lamb']/tracer.rhalf_2d/vvar
-    return vvar,mu.value
+    return np.sqrt(vvar),mu.value
