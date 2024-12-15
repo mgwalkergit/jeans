@@ -201,9 +201,13 @@ def plum_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
     return (x**3)/(1.+x**2)**(1.5)
 
 def exp_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
-    if x>100:#fudge to overcome numerical error (function below returns nan)
-        return 1.
-    return 1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x)*scipy.special.modstruve(1,x)+scipy.special.kn(1,x)*(3.*np.pi*scipy.special.modstruve(2,x)-4.*x))
+    result=1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x)*scipy.special.modstruve(1,x)+scipy.special.kn(1,x)*(3.*np.pi*scipy.special.modstruve(2,x)-4.*x))
+    if ((type(x) is list)|(type(x) is np.ndarray)):
+        result[x>100.]=1.
+    elif ((type(x) is float)|(type(x) is int)|(type(x) is np.float64)):
+        if x>100:
+            result=1.
+    return result
 
 def a2bg_enclosed_luminosity(x,beta,gamma):#L(x)/luminosity_tot, x=r/r_scale
     alpha=2.
