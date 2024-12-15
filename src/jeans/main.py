@@ -6,9 +6,6 @@ import warnings
 import matplotlib.pyplot as plt
 import astropy as ap
 import astropy.units as u
-#from astropy.units.quantity_helper import UFUNC_HELPERS#,helper_dimensionless_to_dimensionless
-#from astropy.units.quantity_helper.helpers import helper_dimensionless_to_dimensionless
-#UFUNC_HELPERS[scipy.special.erf,scipy.special.modstruve] = helper_dimensionless_to_dimensionless
 
 g=0.004317#newton's G in units of km/s, pc, Msun
 g_dim=g*u.km**2*u.pc/u.s**2/u.M_sun#now as an astropy.units quantity
@@ -130,7 +127,10 @@ def abg_triangle_mass_density(x,c_triangle,alpha,beta,gamma):# returns rho_abg(x
     return 1./(cx**gamma)/(1.+cx**alpha)**((beta-gamma)/alpha)
 
 def abg_triangle_enclosed_mass(x,c_triangle,alpha,beta,gamma):# returns enclosed mass M_abg(x) / m_triangle, where x = r/r_triangle
-    cx=c_triangle*x #r / r_scale
+    if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
+        cx=c_triangle*x.value#r / r_scale
+    else:
+        cx=c_triangle*x #r / r_scale
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
     c=(3.-gamma+alpha)/alpha
@@ -204,7 +204,7 @@ def plum_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
     return (x**3)/(1.+x**2)**(1.5)
 
 def exp_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
-    if type(x) is ap.units.quantity.Quantity:
+    if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
         result=1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x.value)*scipy.special.modstruve(1,x.value)+scipy.special.kn(1,x.value)*(3.*np.pi*scipy.special.modstruve(2,x.value)-4.*x.value))
         if ((type(x.value) is list)|(type(x.value) is np.ndarray)):
             result[x.value>100]=1.
