@@ -32,11 +32,11 @@ For cNFW and cNFWt models, the standard definitions of parameters $M_{\triangle}
 
 The alpha/beta/gamma ('abg') model has number density profile $\nu(r)=\frac{\nu_0}{(r/r_s)^{\gamma}[1+(r/r_s)^{\alpha}]^{(\beta-\gamma)/\alpha}}$.
 
-The Plummer model is a special case of the 'abg' model, with $(\alpha,\beta,\gamma)=(2,5,0)$, but can be called directly.
+The Plummer model ('plum') is a special case of the 'abg' model, with $(\alpha,\beta,\gamma)=(2,5,0)$, but can be called directly.
 
 The 'a2bg' model is a special case of the 'abg' model, with $\alpha=2$, but can be called directly.
 
-The exponential model is defined in terms of projected density, $\Sigma(R)=\Sigma_0\exp(-R/r_s)$.
+The exponential model 'exp' is defined in terms of projected density, $\Sigma(R)=\Sigma_0\exp(-R/r_s)$.
 
 # Available Models for velocity dispersion anisotropy of the tracer component
 
