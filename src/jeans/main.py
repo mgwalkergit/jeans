@@ -225,7 +225,10 @@ def a2bg_enclosed_luminosity(x,beta,gamma):#L(x)/luminosity_tot, x=r/r_scale
     b=(beta-gamma)/alpha
     c=(3.-gamma+alpha)/alpha
     d=(beta-3.)/alpha
-    z1=-x**alpha
+    if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
+        z1=-x.value**alpha
+    else:
+        z1=-x**alpha
     z2=-np.inf**alpha
     hf1=scipy.special.hyp2f1(a,b,c,z1)  
     hf2=scipy.special.hyp2f1(a,b,c,z2)
@@ -237,7 +240,10 @@ def abg_enclosed_luminosity(x,alpha,beta,gamma):#L(x)/luminosity_tot, x=r/r_scal
     b=(beta-gamma)/alpha
     c=(3.-gamma+alpha)/alpha
     d=(beta-3.)/alpha
-    z1=-x**alpha
+    if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
+        z1=-x.value**alpha
+    else:
+        z1=-x**alpha
     z2=-np.inf**alpha
     hf1=scipy.special.hyp2f1(a,b,c,z1)  
     hf2=scipy.special.hyp2f1(a,b,c,z2)
@@ -499,7 +505,6 @@ def get_anisotropy(model,**params):
     
     else:
         raise TypeError('anisotropy model not properly specified!')
-
 
 def get_rhalf(model,r_scale,**params):
 
