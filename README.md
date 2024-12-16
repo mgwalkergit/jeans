@@ -44,39 +44,11 @@ The only model currently implemented is that of Read et al. (arXiv:1805.06934): 
 
 # Usage
 
-In order to create an object representing, e.g., an NFW halo with overdensity parameter $\triangle=200$, halo mass given by $M_{\triangle}=1\times 10^{10}M_{\odot}$ and concentration $c_{\triangle}=r_{\triangle}/r_s=10$, where $M_{\triangle}\equiv M(r_{\triangle})$ is the mass enclosed within a sphere of radius $r_{\triangle}$ and the mean halo density within a sphere of radius $r_{\triangle}$ is $\triangle$ times the cosmological critical density given by $3H_0/(8\pi G)$, with $h\equiv H_0/100$ (km/s/Mpc)$^{-1}$:
-
-```nfw=jeans.get_dmhalo('nfw',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10)```
-
-The object stores the input halo parameters as well as the corresponding scale radius and scale density ('r_scale', 'rho_scale'), maximum circular velocity ('v_max'), radius where vmax occurs ('r_max'), and (3d) radial functions for the mass density ('density'), enclosed mass ('mass'), and circular velocity ('vcirc').
-
-For the core-NFW-tides halo, e.g., this would become
-
-```cnfwt=jeans.get_dmhalo('cnfwt',triangle=200,h=0.7,m_triangle=1.e+10,c_triangle=10,r_core=0.3,n_core=1.,r_tide=1.,delta=5.)```
-
-***Note that for cNFW and cNFWt models, $r_{\rm c}$ and $r_{\rm t}$ must be specified in units of $r_{\triangle}$.***
-
-To create an object representing, e.g., a tracer component following a Plummer profile with scale radius 100 pc (units of pc assumed, for compatibility with DM halos), total luminosity 1000 $L_{\odot}$, and tracer mass-to-light ratio $\Upsilon=1$ (solar units):
-
-```plum=jeans.get_tracer('plum',luminosity_tot=1000.,r_scale=100.,upsilon=1.)```
-
-The tracer object stores the input parameters as well as the normalization constants for 3D and (projected) 2D density profiles ('nu0' and 'sigma0', respectively), the number of tracer particles within a sphere of radius r_scale (normalized by nu0 * r_scale^3, 'nscalenorm'), and within a sphere of radius infinity (normalized by nu0 * r_scale^3, 'ntotnorm'), the 2D and 3D halflight radii ('rhalf_2d' and rhalf_3d') in units of pc, and functions for the 3D number density ('density'), 2D projected number density ('density_2d'), and cumulative number ('number').
-
-For the 'abg' tracer model, this would become
-
-```a2bg=jeans.get_tracer('a2bg',luminosity_tot=1000.,r_scale=100.,upsilon=1.,alpha=1.6,beta=7.,gamma=0.4)```
-
-To create an object representing the tracer component's velocity dispersion anisotropy:
-
-```anisotropy=jeans.get_anisotropy('read',beta_0=-0.3,beta_inf=0.8,r_beta=1.,n_beta=1.)```
-
-***Note that $r_{\beta}$ must be specified in units of $r_{\rm scale}$, the scale radius assigned to the tracer population.***
-
-The anisotropy object stores the input parameters as well functions for the anisotropy profile ('beta') and the function $\exp(2\int\frac{\beta}{r}dr)$ ('f_beta'), which appears in the Jeans equations.
+See [notebook](examples/jeans_example1.ipynb) in the examples folder.
 
 # Examples 
 
-For examples of ...
+See [notebook](examples/jeans_example1.ipynb) in the examples folder.
 
 # Acknowledgement
 
