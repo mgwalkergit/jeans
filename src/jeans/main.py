@@ -160,13 +160,20 @@ def get_a2bg_scale(luminosity_tot,r_scale,beta,gamma):#nu_scale, normalization f
     sigma0=luminosity_tot/4./np.sqrt(np.pi)/(r_scale**2)*(beta-3.)*scipy.special.gamma(b)/scipy.special.gamma(a)/scipy.special.gamma(c)
     return nu_scale,sigma0
 
+def integrand_abg_scale(x,alpha,beta,gamma):
+    return x*abg_luminosity_density_2d(x,alpha,beta,gamma)
+
 def get_abg_scale(luminosity_tot,r_scale,alpha,beta,gamma):#nu_scale, normalization factor for number density profile
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
     c=beta/2.
     d=(beta-3.)/alpha
     nu_scale=luminosity_tot/4./np.pi/r_scale**3*alpha*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(a)
-    sigma0=np.nan#haven't yet implemented, probably a numerical integration
+    
+    min0=0.
+    max0=np.inf
+    int1=scipy.integrate.quad(integrand_abg_scale,min0,max0,args=(alpha,beta,gamma))
+    sigma0=luminosity_tot/2./np.pi/r_scale**2/int1[0]
     return nu_scale,sigma0
 
 def plum_luminosity_density(x):#nu(x) / nu_scale, x=r/r_scale
@@ -206,7 +213,12 @@ def abg_luminosity_density(x,alpha,beta,gamma):#nu(x) / nu_scale, x=r/r_scale
     return 1./(x**gamma)/(1.+x**alpha)**((beta-gamma)/alpha)
 
 def abg_luminosity_density_2d(x,alpha,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
-    return np.nan #requires numerical integration, haven't implemented this yet
+    def integrand_abg_luminosity_density_2d(x,bigx,alpha,beta,gamma):
+        return x**(1.-gamma)/(1.+x**alpha)**((beta-gamma)/alpha)/np.sqrt(x**2-bigx**2)
+    min0=x
+    max0=np.inf
+    int1=scipy.integrate.quad(integrand_abg_luminosity_density_2d,min0,max0,args=(x,alpha,beta,gamma))
+    return int1[0]
 
 def plum_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
     return (x**3)/(1.+x**2)**(1.5)
@@ -522,33 +534,43 @@ def get_rhalf(model,r_scale,**params):
         nu_scale=params['bigsigma0']/np.pi/r_scale
         ntot=(1.-params['ellipticity'])*2.*np.pi*r_scale**2*params['bigsigma0']
     elif model=='a2bg':
-        def rootfind_2bg_2d(x,beta,gamma):
+        def rootfind_a2bg_2d(x,beta,gamma):
             return 0.5-np.sqrt(np.pi)*scipy.special.gamma((beta-gamma)/2)/2/scipy.special.gamma(beta/2)/scipy.special.gamma((3-gamma)/2)*x**(3-beta)*scipy.special.hyp2f1((beta-3)/2,(beta-gamma)/2,beta/2,-1/x**2)
-        def rootfind_2bg_3d(x,beta,gamma):
+        def rootfind_a2bg_3d(x,beta,gamma):
             return -0.5+2*scipy.special.gamma((beta-gamma)/2)/scipy.special.gamma((beta-3)/2)/scipy.special.gamma((3-gamma)/2)/(3-gamma)*x**(3-gamma)*scipy.special.hyp2f1((3-gamma)/2,(beta-gamma)/2,(5-gamma)/2,-x**2)
         low0=1.e-20
         high0=1.e+20
-        rhalf_2d=r_scale*scipy.optimize.brentq(rootfind_2bg_2d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=1000,full_output=False,disp=True)
-        rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_2bg_3d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
+        rhalf_2d=r_scale*scipy.optimize.brentq(rootfind_a2bg_2d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=1000,full_output=False,disp=True)
+        rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_a2bg_3d,low0,high0,args=(params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
         nu_scale=params['bigsigma0']*scipy.special.gamma(params['beta']/2)/np.sqrt(np.pi)/r_scale/scipy.special.gamma((params['beta']-1)/2)
         ntot=(1.-params['ellipticity'])*4.*np.sqrt(np.pi)*r_scale**2*params['bigsigma0']/(params['beta']-3)*scipy.special.gamma((3-params['gamma'])/2)*scipy.special.gamma(params['beta']/2)/scipy.special.gamma((params['beta']-params['gamma'])/2)
 
     elif model=='abg':
+        a=(3.-params['gamma'])/params['alpha']
+        b=(params['beta']-params['gamma'])/params['alpha']
+        c=(3.-params['gamma']+params['alpha'])/params['alpha']
+        d=(params['beta']-3.)/params['alpha']
         def rootfind_abg_2d(x,alpha,beta,gamma):
-            return np.nan#not computed yet, projection of abg model requires numerical integration
+            min0=0.
+            max0=x
+            int1=scipy.integrate.quad(integrand_abg_scale,min0,max0,args=(alpha,beta,gamma))
+            min0=0.
+            max0=np.inf
+            int2=scipy.integrate.quad(integrand_abg_scale,min0,max0,args=(alpha,beta,gamma))
+            return -0.5+int1[0]/int2[0]#not computed yet, projection of abg model requires numerical integration
         def rootfind_abg_3d(x,alpha,beta,gamma):
-            a=(3.-gamma)/alpha
-            b=(beta-gamma)/alpha
-            c=(3.-gamma+alpha)/alpha
-            d=(beta-3.)/alpha
+            #a=(3.-gamma)/alpha
+            #b=(beta-gamma)/alpha
+            #c=(3.-gamma+alpha)/alpha
+            #d=(beta-3.)/alpha
             z1=-x**alpha
             return -0.5+(x**(3.-gamma))*scipy.special.hyp2f1(a,b,c,z1)*scipy.special.gamma(b)/scipy.special.gamma(d)/scipy.special.gamma(c)
         low0=1.e-20
-        high0=1.e+20
-        rhalf_2d=np.nan#not computed yet, projection of abg model requires numerical integration
+        high0=1.e+5
+        rhalf_2d=r_scale*scipy.optimize.brentq(rootfind_abg_2d,low0,high0,args=(params['alpha'],params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
         rhalf_3d=r_scale*scipy.optimize.brentq(rootfind_abg_3d,low0,high0,args=(params['alpha'],params['beta'],params['gamma']),xtol=1.e-12,rtol=1.e-6,maxiter=100,full_output=False,disp=True)
-        nu_scale=np.nan#not yet computed
-        ntot=np.nan#not yet computed
+        nu_scale=params['bigsigma0']/2./r_scale
+        ntot=4.*np.pi*nu_scale*(r_scale**3)*scipy.special.gamma(d)*scipy.special.gamma(a)/scipy.special.gamma(b)/params['alpha']#for this one use integral of 3d profile, which is analytic
 
     elif model=='captured_truncated':
         return
@@ -556,7 +578,6 @@ def get_rhalf(model,r_scale,**params):
         raise ValueError('error in model specification')
     return rhalf_2d,rhalf_3d,nu_scale,ntot
     
-
 def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     
     if 'component' not in params:
