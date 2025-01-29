@@ -1,6 +1,6 @@
 Metadata-Version: 2.2
 Name: jeans
-Version: 1.5.6
+Version: 1.5.7
 Summary: package to compute integrals related to spherical Jeans equation, including various parametric functions to describe halo and tracer components
 Author-email: "Matthew G. Walker" <mgwalker@cmu.edu>
 Project-URL: Homepage, https://github.com/mgwalkergit/jeans

@@ -234,10 +234,16 @@ def exp_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
         result=1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x.value)*scipy.special.modstruve(1,x.value)+scipy.special.kn(1,x.value)*(3.*np.pi*scipy.special.modstruve(2,x.value)-4.*x.value))
         if ((type(x.value) is list)|(type(x.value) is np.ndarray)):
             result[x.value>100]=1.
+        else:
+            if x.value>100:
+                result=1.
     else:
         result=1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x)*scipy.special.modstruve(1,x)+scipy.special.kn(1,x)*(3.*np.pi*scipy.special.modstruve(2,x)-4.*x))
         if ((type(x) is list)|(type(x) is np.ndarray)):
             result[x>100]=1.
+        else:
+            if x>100.:
+                result=1.
     return result
 
 def a2bg_enclosed_luminosity(x,beta,gamma):#L(x)/luminosity_tot, x=r/r_scale
