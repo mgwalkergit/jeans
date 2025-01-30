@@ -184,15 +184,9 @@ def plum_luminosity_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
 
 def exp_luminosity_density(x):#nu(x) / nu_scale, x=r/r_scale
     if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
-        if x.value<1.e-300:
-            return np.inf
-        else:
-            return scipy.special.kn(0,x.value)
+        return scipy.special.kn(0,x.value)
     else:
-        if x<1.e-300:
-            return np.inf
-        else:
-            return scipy.special.kn(0,x)
+        return scipy.special.kn(0,x)
 
 def exp_luminosity_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
     return np.exp(-x)
