@@ -368,7 +368,7 @@ def get_dmhalo(model,**params):
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return dehnen_core_enclosed_mass(x,params['c_triangle'])
         def potential(x):
-            return dehnen_core_potential(x,params['c_triangle'])
+            return nfw_potential(x,params['c_triangle'])
 
     if model=='dehnen_cusp':
         
@@ -379,7 +379,7 @@ def get_dmhalo(model,**params):
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return dehnen_cusp_enclosed_mass(x,params['c_triangle'])
         def potential(x):
-            return dehnen_cusp_potential(x,params['c_triangle'])
+            return nfw_potential(x,params['c_triangle'])
 
     elif model=='abg':
 
@@ -390,7 +390,7 @@ def get_dmhalo(model,**params):
         def enclosed_mass(x):
             return abg_triangle_enclosed_mass(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
         def potential(x):
-            return abg_potential(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
+            return nfw_potential(x,params['c_triangle'])
 
     elif model=='cnfw':#params['r_core'] is core radius
         
@@ -401,7 +401,7 @@ def get_dmhalo(model,**params):
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfw_enclosed_mass(x,params['c_triangle'],params['r_core'],params['n_core'])
         def potential(x):
-            return cnfw_potential(x,params['c_triangle'],params['r_core'],params['n_core'])
+            return nfw_potential(x,params['c_triangle'])
 
     elif model=='cnfwt':#params['r_core'] is core radius / r_triangle, params['r_tide'] is tidal radius / r_triangle
         
@@ -412,7 +412,7 @@ def get_dmhalo(model,**params):
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfwt_enclosed_mass(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
         def potential(x):
-            return cnfwt_potential(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
+            return nfw_potential(x,params['c_triangle'])
         
     def vcirc(x):# returns circular velocity, km/s
         if type(params['m_triangle']) is ap.units.quantity.Quantity:
