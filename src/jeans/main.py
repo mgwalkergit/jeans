@@ -346,7 +346,7 @@ def get_dmhalo(model,**params):
             self.mass_density=mass_density
             self.enclosed_mass=enclosed_mass
             self.vcirc=vcirc
-            self.potential
+            self.potential=potential
             
     if model=='nfw':
         
