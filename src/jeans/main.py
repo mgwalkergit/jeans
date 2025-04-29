@@ -77,6 +77,11 @@ def nfw_enclosed_mass(x,c_triangle):# returns enclosed mass M(x) / m_triangle, w
     cx=c_triangle*x #r / r_scale
     return gc*(np.log(1.+cx)-cx/(1.+cx))
 
+def nfw_potential(x,c_triangle): # returns gravitational potential phi(x) / phi(0), where x=r/r_triangle
+    gc=get_nfw_gc(c_triangle)
+    cx=c_triangle*x #r / r_scale
+    return np.log(1.+cx)/cx
+    
 def dehnen_core_enclosed_mass(x,c_triangle):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
     gc=get_dehnen_core_gc(c_triangle)
     cx=c_triangle*x #r / r_scale
@@ -319,7 +324,7 @@ def get_dmhalo(model,**params):
     
     class dmhalo:
         
-        def __init__(self,model=None,triangle=None,h=None,m_triangle=None,c_triangle=None,r_triangle=None,r_core=None,n_core=None,r_tide=None,delta=None,alpha=None,beta=None,gamma=None,rho_scale=None,r_scale=None,v_max=None,r_max=None,mass_density=None,enclosed_mass=None,vcirc=None):
+        def __init__(self,model=None,triangle=None,h=None,m_triangle=None,c_triangle=None,r_triangle=None,r_core=None,n_core=None,r_tide=None,delta=None,alpha=None,beta=None,gamma=None,rho_scale=None,r_scale=None,v_max=None,r_max=None,mass_density=None,enclosed_mass=None,vcirc=None,potential=None):
 
             self.model=model
             self.triangle=triangle
@@ -341,7 +346,8 @@ def get_dmhalo(model,**params):
             self.mass_density=mass_density
             self.enclosed_mass=enclosed_mass
             self.vcirc=vcirc
-
+            self.potential
+            
     if model=='nfw':
         
         r_triangle,r_scale,rho_scale=get_nfw_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
@@ -350,7 +356,9 @@ def get_dmhalo(model,**params):
             return nfw_mass_density(x,params['c_triangle'])
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return nfw_enclosed_mass(x,params['c_triangle'])
-
+        def potential(x):
+            return nfw_potential(x,params['c_triangle'])
+        
     if model=='dehnen_core':
         
         r_triangle,r_scale,rho_scale=get_dehnen_core_scale(params['triangle'],params['h'],params['m_triangle'],params['c_triangle'])
@@ -359,6 +367,8 @@ def get_dmhalo(model,**params):
             return dehnen_core_mass_density(x,params['c_triangle'])
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return dehnen_core_enclosed_mass(x,params['c_triangle'])
+        def potential(x):
+            return dehnen_core_potential(x,params['c_triangle'])
 
     if model=='dehnen_cusp':
         
@@ -368,6 +378,8 @@ def get_dmhalo(model,**params):
             return dehnen_cusp_mass_density(x,params['c_triangle'])
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return dehnen_cusp_enclosed_mass(x,params['c_triangle'])
+        def potential(x):
+            return dehnen_cusp_potential(x,params['c_triangle'])
 
     elif model=='abg':
 
@@ -377,6 +389,8 @@ def get_dmhalo(model,**params):
             return abg_triangle_mass_density(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
         def enclosed_mass(x):
             return abg_triangle_enclosed_mass(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
+        def potential(x):
+            return abg_potential(x,params['c_triangle'],params['alpha'],params['beta'],params['gamma'])
 
     elif model=='cnfw':#params['r_core'] is core radius
         
@@ -386,6 +400,8 @@ def get_dmhalo(model,**params):
             return cnfw_mass_density(x,params['c_triangle'],params['r_core'],params['n_core'])
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfw_enclosed_mass(x,params['c_triangle'],params['r_core'],params['n_core'])
+        def potential(x):
+            return cnfw_potential(x,params['c_triangle'],params['r_core'],params['n_core'])
 
     elif model=='cnfwt':#params['r_core'] is core radius / r_triangle, params['r_tide'] is tidal radius / r_triangle
         
@@ -395,6 +411,8 @@ def get_dmhalo(model,**params):
             return cnfwt_mass_density(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfwt_enclosed_mass(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
+        def potential(x):
+            return cnfwt_potential(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
         
     def vcirc(x):# returns circular velocity, km/s
         if type(params['m_triangle']) is ap.units.quantity.Quantity:
@@ -412,17 +430,17 @@ def get_dmhalo(model,**params):
     v_max=vcirc(res.x[0])
 
     if model=='nfw':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc,potential=potential)
     if model=='dehnen_core':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc,potential=potential)
     if model=='dehnen_cusp':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc,potential=potential)
     elif model=='abg':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,alpha=params['alpha'],beta=params['beta'],gamma=params['gamma'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc,potential=potential)
     elif model=='cnfw':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc,potential=potential)
     elif model=='cnfwt':
-        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],r_tide=params['r_tide'],delta=params['delta'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc)
+        return dmhalo(model=model,triangle=params['triangle'],h=params['h'],m_triangle=params['m_triangle'],c_triangle=params['c_triangle'],r_triangle=r_triangle,r_core=params['r_core'],n_core=params['n_core'],r_tide=params['r_tide'],delta=params['delta'],rho_scale=rho_scale,r_scale=r_scale,v_max=v_max,r_max=r_max,mass_density=mass_density,enclosed_mass=enclosed_mass,vcirc=vcirc,potential=potential)
     else:
         raise TypeError('DM halo not properly specified!')
     
@@ -638,7 +656,7 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     
     bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2,sigma_proj_los,sigma_proj_rad,sigma_proj_tan,sigma_rad,sigma_tan=np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan
     
-    if min0==max0:
+    if min0>=max0:
         bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2,sigma_proj_los,sigma_proj_rad,sigma_proj_tan,sigma_rad,sigma_tan=0.,0.,0.,0.,0.,0.,0.,0.,0.,0.
         
     else:
@@ -719,7 +737,8 @@ def get_virial(dmhalo,tracer,**params):
     if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
         vvar=val1[0]*4.*np.pi*g_dim/3.*dmhalo.m_triangle*(dmhalo.r_triangle**2)/tracer.ltotnorm/tracer.r_scale**3
         mu=g_dim*(dmhalo.enclosed_mass(params['lamb']*tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(params['lamb']*tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle)*dmhalo.m_triangle/params['lamb']/tracer.rhalf_2d/vvar
+        return np.sqrt(vvar),mu.value
     else:
         vvar=val1[0]*4.*np.pi*g/3.*dmhalo.m_triangle*(dmhalo.r_triangle**2)/tracer.ltotnorm/tracer.r_scale**3
         mu=g*(dmhalo.enclosed_mass(params['lamb']*tracer.rhalf_2d/dmhalo.r_triangle)+tracer.enclosed_luminosity(params['lamb']*tracer.rhalf_2d/tracer.r_scale)*tracer.luminosity_tot*tracer.upsilon/dmhalo.m_triangle)*dmhalo.m_triangle/params['lamb']/tracer.rhalf_2d/vvar
-    return np.sqrt(vvar),mu.value
+        return np.sqrt(vvar),mu
