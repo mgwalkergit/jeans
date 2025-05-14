@@ -69,13 +69,13 @@ def get_abg_triangle_scale(triangle,h,m_triangle,c_triangle,alpha,beta,gamma):#r
     else:
         r_triangle=(2.*g*m_triangle/triangle*(1.e+6**2)/(h*100.)**2)**(1/3)#r_triangle in units of pc, where triangle is overdensity factor = [M_triangle / (4*pi*r_triangle**3)] / rho_crit_0, where rho_crit_0 = 3H_0^2/(8*pi*G), H_0 is hubble constant, m_triangle is given in units of Msun
     r_scale=r_triangle/c_triangle#scale radius in same units as r_triangle, where concentration is defined as c_triangle=r_triangle/r_scale
-    rho_scale=m_triangle*(3.-gamma)/4./np.pi/(r_scale**3)/c_triangle**(3.-gamma)/hf1
-    phi0=np.nan#not yet implemented
     a=(3.-gamma)/alpha
     b=(beta-gamma)/alpha
     c=(3.-gamma+alpha)/alpha
     z1=-c_triangle**alpha
-    hf1=scipy.special.hyp2f1(a,b,c,z1)  
+    hf1=scipy.special.hyp2f1(a,b,c,z1)      
+    rho_scale=m_triangle*(3.-gamma)/4./np.pi/(r_scale**3)/c_triangle**(3.-gamma)/hf1
+    phi0=np.nan#not yet implemented
     return r_triangle,r_scale,rho_scale,phi0
 
 def nfw_mass_density(x,c_triangle):# returns rho_NFW(x) / rho_scale, where x = r / r_triangle
