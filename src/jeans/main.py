@@ -135,7 +135,7 @@ def cnfw_potential(x,c_triangle,r_core,n_core):# returns phi_cNFW(x) / phi_cNFW(
     ncorem1=n_core-1.
     two=2.
     cx=c_triangle*x #r / r_scale
-    return (fncore(x,r_core,n_core)/cx*(np.log(1.+cx)-cx/(1.+cx)+1./(1.+cx)-1./(1.+c_triangle))+1./c_triangle/r_core*n_core*fncore(x,r_core,ncorem1)*(1.-fncore(x,r_core,two))*(np.log(1.+cx)-np.log(1.+c_triangle)+float(mpmath.polylog(2,-cx))-float(mpmath.polylog(2,-c_triangle))))/(fncore(x,r_core,n_core)*(2.-1./(1.+c_triangle))+n_core*1./c_triangle/r_core*fncore(x,r_core,ncorem1)*fncore(x,r_core,two)*(-np.log(1.+c_triangle)-float(mpmath.polylog(2,-c_triangle))))
+    return (fncore(x,r_core,n_core)/cx*(np.log(1.+cx)-cx/(1.+cx)+1./(1.+cx)-1./(1.+c_triangle))+1./c_triangle/r_core*n_core*fncore(x,r_core,ncorem1)*(1.-fncore(x,r_core,two))*(np.log(1.+cx)-np.log(1.+c_triangle)+float(mp.polylog(2,-cx))-float(mp.polylog(2,-c_triangle))))/(fncore(x,r_core,n_core)*(2.-1./(1.+c_triangle))+n_core*1./c_triangle/r_core*fncore(x,r_core,ncorem1)*fncore(x,r_core,two)*(-np.log(1.+c_triangle)-float(mp.polylog(2,-c_triangle))))
 
 def cnfwt_mass_density(x,c_triangle,r_core,n_core,r_tide,delta):#returns rho_coreNFWtides(x) / rho_0, where x = r/r_triangle
     if ((type(x) is float)|(type(x) is np.float64)):
@@ -436,11 +436,10 @@ def get_dmhalo(model,**params):
         
         ncorem1=params['n_core']-1.
         two=2.
-        cx=params['c_triangle']*x #r / r_scale
         if type(params['m_triangle']) is ap.units.quantity.Quantity:    
-            phi0=(-4.*np.pi*g_dim*rho_scale*r_scale**2*(fncore(x,params['r_core'],params['n_core'])*(2.-1./(1.+params['c_triangle']))+params['n_core']*1./params['c_triangle']/params['r_core']*fncore(x,params['r_core'],ncorem1)*(1.-fncore(x,params['r_core'],two))*(-np.log(1.+params['c_triangle'])-float(npmath.polylog(2.,-params['c_triangle']))))).to(u.km*u.km/u.s/u.s)
+            phi0=(-4.*np.pi*g_dim*rho_scale*r_scale**2*(fncore(0.,params['r_core'],params['n_core'])*(2.-1./(1.+params['c_triangle']))+params['n_core']*1./params['c_triangle']/params['r_core']*fncore(0.,params['r_core'],ncorem1)*(1.-fncore(0.,params['r_core'],two))*(-np.log(1.+params['c_triangle'])-float(mp.polylog(2.,-params['c_triangle']))))).to(u.km*u.km/u.s/u.s)
         else:
-            phi0=-4.*np.pi*g*rho_scale*r_scale**2*(fncore(x,params['r_core'],params['n_core'])*(2.-1./(1.+params['c_triangle']))+params['n_core']*1./params['c_triangle']/params['r_core']*fncore(x,params['r_core'],ncorem1)*(1.-fncore(x,params['r_core'],two))*(-np.log(1.+params['c_triangle'])-float(npmath.polylog(2.,-params['c_triangle']))))
+            phi0=-4.*np.pi*g*rho_scale*r_scale**2*(fncore(0.,params['r_core'],params['n_core'])*(2.-1./(1.+params['c_triangle']))+params['n_core']*1./params['c_triangle']/params['r_core']*fncore(0.,params['r_core'],ncorem1)*(1.-fncore(0.,params['r_core'],two))*(-np.log(1.+params['c_triangle'])-float(mp.polylog(2.,-params['c_triangle']))))
         
         def mass_density(x):
             return cnfw_mass_density(x,params['c_triangle'],params['r_core'],params['n_core'])
