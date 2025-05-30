@@ -453,7 +453,7 @@ def get_dmhalo(model,**params):
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfw_enclosed_mass(x,params['c_triangle'],params['r_core'],params['n_core'])
         def potential(x):
-            return np.frompyfunc(cnfw_potential(x,params['c_triangle'],params['r_core'],params['n_core']),1,1)
+            return cnfw_potential(x,params['c_triangle'],params['r_core'],params['n_core'])
 
     elif model=='cnfwt':#params['r_core'] is core radius / r_triangle, params['r_tide'] is tidal radius / r_triangle
         
