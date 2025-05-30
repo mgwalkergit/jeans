@@ -161,6 +161,12 @@ def cnfwt_enclosed_mass(x,c_triangle,r_core,n_core,r_tide,delta):#returns M_cNFW
         val[x>=r_tide]=cnfw_enclosed_mass(r_tide,c_triangle,r_core,n_core)+cnfw_mass_density(r_tide,c_triangle,r_core,n_core)*get_nfw_gc(c_triangle)/(3.-delta)*((c_triangle*r_tide)**3)*(((x[x>=r_tide]/r_tide)**(3.-delta))-1.)
         return val
 
+def cnfw_potential(x,c_triangle,r_core,n_core):# returns phi_cNFW(x) / phi_cNFW(0), where x=r/r_triangle, r_core=(core radius)/ r_triangle
+    ncorem1=n_core-1.
+    two=2.
+    cx=c_triangle*x #r / r_scale
+    return np.nan
+
 def abg_triangle_mass_density(x,c_triangle,alpha,beta,gamma):# returns rho_abg(x) / rho_scale, where x = r / r_triangle
     cx=c_triangle*x #r / r_scale
     return 1./(cx**gamma)/(1.+cx**alpha)**((beta-gamma)/alpha)
@@ -446,7 +452,7 @@ def get_dmhalo(model,**params):
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfw_enclosed_mass(x,params['c_triangle'],params['r_core'],params['n_core'])
         def potential(x):
-            return cnfw_potential(x,params['c_triangle'])
+            return cnfw_potential(x,params['c_triangle'],params['r_core'],params['n_core'])
 
     elif model=='cnfwt':#params['r_core'] is core radius / r_triangle, params['r_tide'] is tidal radius / r_triangle
         
@@ -458,7 +464,7 @@ def get_dmhalo(model,**params):
         def enclosed_mass(x):# returns enclosed mass M(x) / m_triangle, where x = r/r_triangle
             return cnfwt_enclosed_mass(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
         def potential(x):
-            return cnfwt_potential(x,params['c_triangle'])
+            return cnfwt_potential(x,params['c_triangle'],params['r_core'],params['n_core'],params['r_tide'],params['delta'])
         
     def vcirc(x):# returns circular velocity, km/s
         if type(params['m_triangle']) is ap.units.quantity.Quantity:
