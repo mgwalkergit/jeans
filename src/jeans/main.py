@@ -161,7 +161,7 @@ def cnfwt_enclosed_mass(x,c_triangle,r_core,n_core,r_tide,delta):#returns M_cNFW
         val[x>=r_tide]=cnfw_enclosed_mass(r_tide,c_triangle,r_core,n_core)+cnfw_mass_density(r_tide,c_triangle,r_core,n_core)*get_nfw_gc(c_triangle)/(3.-delta)*((c_triangle*r_tide)**3)*(((x[x>=r_tide]/r_tide)**(3.-delta))-1.)
         return val
 
-def cnfw_potential(x,c_triangle,r_core,n_core):# returns phi_cNFW(x) / phi_cNFW(0), where x=r/r_triangle, r_core=(core radius)/ r_triangle
+def cnfwt_potential(x,c_triangle,r_core,n_core):# returns phi_cNFW(x) / phi_cNFW(0), where x=r/r_triangle, r_core=(core radius)/ r_triangle
     ncorem1=n_core-1.
     two=2.
     cx=c_triangle*x #r / r_scale
