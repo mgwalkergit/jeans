@@ -135,8 +135,8 @@ def cnfw_potential(x,c_triangle,r_core,n_core):# returns phi_cNFW(x) / phi_cNFW(
     ncorem1=n_core-1.
     two=2.
     cx=c_triangle*x #r / r_scale
-    polylog_vec=np.frompyfunc(mp.polylog,2,1)
-    return (fncore(x,r_core,n_core)/cx*(np.log(1.+cx)-cx/(1.+cx)+1./(1.+cx)-1./(1.+c_triangle))+1./c_triangle/r_core*n_core*fncore(x,r_core,ncorem1)*(1.-fncore(x,r_core,two))*(np.log(1.+cx)-np.log(1.+c_triangle)+float(polylog_vec(2,-cx))-float(mp.polylog(2,-c_triangle))))/(fncore(x,r_core,n_core)*(2.-1./(1.+c_triangle))+n_core*1./c_triangle/r_core*fncore(x,r_core,ncorem1)*fncore(x,r_core,two)*(-np.log(1.+c_triangle)-float(mp.polylog(2,-c_triangle))))
+    #polylog_vec=np.frompyfunc(mp.polylog,2,1)
+    return (fncore(x,r_core,n_core)/cx*(np.log(1.+cx)-cx/(1.+cx)+1./(1.+cx)-1./(1.+c_triangle))+1./c_triangle/r_core*n_core*fncore(x,r_core,ncorem1)*(1.-fncore(x,r_core,two))*(np.log(1.+cx)-np.log(1.+c_triangle)+float(mp.polylog(2,-cx))-float(mp.polylog(2,-c_triangle))))/(fncore(x,r_core,n_core)*(2.-1./(1.+c_triangle))+n_core*1./c_triangle/r_core*fncore(x,r_core,ncorem1)*fncore(x,r_core,two)*(-np.log(1.+c_triangle)-float(mp.polylog(2,-c_triangle))))
 
 def cnfwt_mass_density(x,c_triangle,r_core,n_core,r_tide,delta):#returns rho_coreNFWtides(x) / rho_0, where x = r/r_triangle
     if ((type(x) is float)|(type(x) is np.float64)):
