@@ -655,10 +655,6 @@ def get_rhalf(model,r_scale,**params):
         raise ValueError('error in model specification')
     return rhalf_2d,rhalf_3d,nu_scale,ntot
 
-
-
-
-    
 def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     
     if 'component' not in params:
@@ -751,7 +747,12 @@ def integrate(bigx,dmhalo,tracer,anisotropy,**params):
         sigma_tan=np.sqrt(nusigmatan2/(tracer.luminosity_density(bigx_tracer)))
     return jeans_integral(sigma_proj_los=sigma_proj_los,sigma_proj_rad=sigma_proj_rad,sigma_proj_tan=sigma_proj_tan,sigma_rad=sigma_rad,sigma_tan=sigma_tan)
 
+
+
+
+
 def integrate_isotropic(bigx,dmhalo,tracer,**params):
+    
     if not 'upper_limit' in params:#default upper limit is infinity, common alternative is dmhalo.r_triangle
         params['upper_limit']=np.inf
     if not 'epsrel' in params:
@@ -760,6 +761,10 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
         params['epsabs']=1.49e-8
     if not 'limit' in params:
         params['limit']=50
+
+    class jeans_integral_isotropic:
+        def __init__(self,sigma_proj_los=None):
+            self.sigma_proj_los=sigma_proj_los
         
     def integrand1(x_halo,dmhalo,tracer):
         x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale# r / r_scale
@@ -768,10 +773,28 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
     
     min0=bigx
     max0=params['upper_limit']
-    if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
-        return 2.*g_dim*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu_scale
+    bigx_tracer=bigx*dmhalo.r_triangle/tracer.r_scale
+    
+    bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2,sigma_proj_los,sigma_proj_rad,sigma_proj_tan,sigma_rad,sigma_tan=np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan
+    
+    if min0>=max0:
+        bigsigmasigmalos2,bigsigmasigmarad2,bigsigmasigmatan2,nusigmarad2,nusigmatan2,sigma_proj_los,sigma_proj_rad,sigma_proj_tan,sigma_rad,sigma_tan=0.,0.,0.,0.,0.,0.,0.,0.,0.,0.
+        
     else:
-        return 2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu_scale
+        
+        if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
+            bigsigmasigmalos2=2.*g_dim*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
+        else:
+            bigsigmasigmalos2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
+                
+        sigma_proj_los=np.sqrt(bigsigmasigmalos2/(tracer.luminosity_density_2d(bigx_tracer)*tracer.sigma0/tracer.nu_scale))
+        
+    return jeans_integral_isotropic(sigma_proj_los=sigma_proj_los)
+
+
+
+
+
 
 def projected_virial(x_halo,dmhalo,tracer):#computes integral for Wlos from Errani etal (2018)
     x_tracer=x_halo*dmhalo.r_triangle/tracer.r_scale
