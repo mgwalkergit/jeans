@@ -783,9 +783,9 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
     else:
         
         if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
-            bigsigmasigmalos2=2.*g_dim*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
+            bigsigmasigmalos2=2.*g_dim*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
         else:
-            bigsigmasigmalos2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer,anisotropy),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
+            bigsigmasigmalos2=2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_los(X) * Sigma(X) / nu_scale
                 
         sigma_proj_los=np.sqrt(bigsigmasigmalos2/(tracer.luminosity_density_2d(bigx_tracer)*tracer.sigma0/tracer.nu_scale))
         
