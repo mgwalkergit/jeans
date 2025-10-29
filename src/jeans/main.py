@@ -654,6 +654,10 @@ def get_rhalf(model,r_scale,**params):
     else:
         raise ValueError('error in model specification')
     return rhalf_2d,rhalf_3d,nu_scale,ntot
+
+
+
+
     
 def integrate(bigx,dmhalo,tracer,anisotropy,**params):
     
@@ -764,7 +768,7 @@ def integrate_isotropic(bigx,dmhalo,tracer,**params):
     
     min0=bigx
     max0=params['upper_limit']
-    if type(m_triangle) is ap.units.quantity.Quantity:
+    if type(dmhalo.m_triangle) is ap.units.quantity.Quantity:
         return 2.*g_dim*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu_scale
     else:
         return 2.*g*dmhalo.m_triangle*scipy.integrate.quad(integrand1,min0,max0,args=(dmhalo,tracer),epsrel=params['epsrel'],epsabs=params['epsabs'])[0]#sigma^2_LOS(X) * Sigma(X) / nu_scale
