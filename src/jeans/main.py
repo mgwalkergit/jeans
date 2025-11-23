@@ -194,6 +194,14 @@ def get_plum_scale(luminosity_tot,r_scale):#nu_scale, normalization factor for n
     sigma0=luminosity_tot/np.pi/r_scale**2
     return nu_scale,sigma0
 
+def get_sersic_scale(luminosity_tot,r_scale,n_index):
+    bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
+    pn=1.-0.6097/n_index+0.05463/n_index**2
+    re=r_scale*(bn**n_index)
+    nu_scale=luminosity_tot/4./np.pi/(re**3)/n_index/scipy.special.gamma((3.-pn)*n_index)*bn**((3.-pn)*n_index)
+    sigma0=luminosity_tot/(re**2)/2./np.pi**(1.5)/np.exp(1./3.-2.*n_index)/np.sqrt(n_index)
+    return nu_scale,sigma0
+
 def get_exp_scale(luminosity_tot,r_scale):#nu_scale, normalization factor for number density profile
     nu_scale=luminosity_tot/2./np.pi**2/r_scale**3
     sigma0=luminosity_tot/2./np.pi/r_scale**2
@@ -230,6 +238,15 @@ def plum_luminosity_density(x):#nu(x) / nu_scale, x=r/r_scale
 
 def plum_luminosity_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
     return 1./(1.+x**2)**2
+
+def sersic_luminosity_density(x,n_index):#nu(x) / nu_scale, x=r/r_scale
+    bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
+    pn=1.-0.6097/n_index+0.05463/n_index**2
+    re=r_scale*(bn**n_index)
+    return (x*bn**(-n_index))**(-pn)*np.exp(-bn*(x*bn**(-n_index))**(1./n_index))
+
+def sersic_luminosity_density_2d(x,n_index):
+    return np.exp(-x**(1./n_index))
 
 def exp_luminosity_density(x):#nu(x) / nu_scale, x=r/r_scale
     if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
@@ -271,6 +288,11 @@ def abg_luminosity_density_2d(x,alpha,beta,gamma):#Sigma(X)/Sigma0, X=R/r_scale
 
 def plum_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
     return (x**3)/(1.+x**2)**(1.5)
+
+def sersic_enclosed_luminosity(x,n_index):
+    bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
+    pn=1.-0.6097/n_index+0.05463/n_index**2
+    return scipy.special.gammainc((3.-pn)*n_index,bn*(x*bn**(-n_index))**(1./n_index))/scipy.special.gamma((3.-pn)*n_index)
 
 def exp_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
     if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
@@ -323,6 +345,12 @@ def abg_enclosed_luminosity(x,alpha,beta,gamma):#L(x)/luminosity_tot, x=r/r_scal
 def plum_lscalenorm():#L(r_scale)/(nu_scale *r_scale**3)
     return 4.*np.pi/3./(2.**1.5)
 
+def sersic_lscalenorm(n_index):#L(r_scale)/(nu_scale *r_scale**3)
+    bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
+    pn=1.-0.6097/n_index+0.05463/n_index**2
+    re=r_scale*(bn**n_index)
+    return 4.*np.pi*(bn**3)*n_index*scipy.special.gammainc((3.-pn)*n_index,bn*(1./bn)**(1./n_index))/bn**((3.-pn)*n_index)#not yet implemented
+
 def exp_lscalenorm():#L(r_scale)/(nu_scale *r_scale**3)
     return 2.*np.pi/3.*(3.*np.pi*scipy.special.kn(2,1.)*scipy.special.modstruve(1,1.)+scipy.special.kn(1,1.)*(3.*np.pi*scipy.special.modstruve(2,1.)-4.))
 
@@ -345,6 +373,12 @@ def abg_lscalenorm(alpha,beta,gamma):#L(r_scale)/(nu_scale * r_scale**3)
 
 def plum_ltotnorm():#L(r=infinity)/(nu_scale * r_scale**3)
     return 4.*np.pi/3.
+
+def sersic_ltotnorm(n_index):#L(r=infinity)/(nu_scale * r_scale**3)
+    bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
+    pn=1.-0.6097/n_index+0.05463/n_index**2
+    re=r_scale*(bn**n_index)
+    return 4.*np.pi*(bn**3)*n_index/bn**((3.-pn)*n_index)#not yet implemented
 
 def exp_ltotnorm():#L(r=infinity)/(nu_scale * r_scale**3)
     return 2.*(np.pi**2)
@@ -533,6 +567,19 @@ def get_tracer(model,**params):
 
         return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu_scale=nu_scale,sigma0=sigma0,lscalenorm=plum_lscalenorm(),ltotnorm=plum_ltotnorm(),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
 
+    if model=='sersic':
+
+        rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.,n_index=params['n_index'])
+        nu_scale,sigma0=get_sersic_scale(params['luminosity_tot'],params['r_scale'],params['n_index'])
+        def luminosity_density(x):
+            return sersic_luminosity_density(x,params['n_index'])
+        def luminosity_density_2d(x):
+            return sersic_luminosity_density_2d(x,params['n_index'])
+        def enclosed_luminosity(x):
+            return sersic_enclosed_luminosity(x,params['n_index'])
+
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu_scale=nu_scale,sigma0=sigma0,lscalenorm=sersic_lscalenorm(params['n_index']),ltotnorm=sersic_ltotnorm(params['n_index']),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
+    
     if model=='exp':
 
         rhalf_2d,rhalf_3d,xxx,yyy=get_rhalf(model,params['r_scale'],bigsigma0=1.,ellipticity=0.)
@@ -605,6 +652,14 @@ def get_rhalf(model,r_scale,**params):
         rhalf_3d=1.30476909*r_scale
         nu_scale=3*params['bigsigma0']/4/r_scale
         ntot=(1.-params['ellipticity'])*np.pi*r_scale**2*params['bigsigma0']
+    elif model=='sersic':
+        bn=2.*params['n_index']-1./3.+4./(405.*params['n_index'])+46./(25515.*params['n_index']**2)+131./(1148175.*params['n_index']**3)-2194697./(30690717750.*params['n_index']**4)#Ciotti&Bertin 1999 approximation
+        re=r_scale*(bn**params['n_index'])
+        pn=1.-0.6097/params['n_index']+0.05463/params['n_index']**2
+        rhalf_2d=re
+        rhalf_3d=np.nan#not yet implemented
+        nu_scale=params['bigsigma0']/2./r_scale*bn**(params['n_index']*(1.-pn))*scipy.special.gamma(2.*params['n_index'])/scipy.special.gamma((3.-pn)*params['n_index'])
+        ntot=(1.-params['ellipticity'])*2.*np.pi*params['bigsigma0']*(re**2)*bn**(-2.*params['n_index'])*params['n_index']*scipy.special.gamma(2.*params['n_index'])
     elif model=='exp':
         rhalf_2d=1.67835*r_scale
         rhalf_3d=2.22352*r_scale
