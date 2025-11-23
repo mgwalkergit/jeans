@@ -348,7 +348,6 @@ def plum_lscalenorm():#L(r_scale)/(nu_scale *r_scale**3)
 def sersic_lscalenorm(n_index):#L(r_scale)/(nu_scale *r_scale**3)
     bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
     pn=1.-0.6097/n_index+0.05463/n_index**2
-    re=r_scale*(bn**n_index)
     return 4.*np.pi*(bn**3)*n_index*scipy.special.gammainc((3.-pn)*n_index,bn*(1./bn)**(1./n_index))/bn**((3.-pn)*n_index)#not yet implemented
 
 def exp_lscalenorm():#L(r_scale)/(nu_scale *r_scale**3)
@@ -377,7 +376,6 @@ def plum_ltotnorm():#L(r=infinity)/(nu_scale * r_scale**3)
 def sersic_ltotnorm(n_index):#L(r=infinity)/(nu_scale * r_scale**3)
     bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
     pn=1.-0.6097/n_index+0.05463/n_index**2
-    re=r_scale*(bn**n_index)
     return 4.*np.pi*(bn**3)*n_index/bn**((3.-pn)*n_index)#not yet implemented
 
 def exp_ltotnorm():#L(r=infinity)/(nu_scale * r_scale**3)
