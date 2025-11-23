@@ -535,7 +535,7 @@ def get_tracer(model,**params):
 
     class tracer:
 
-        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu_scale=None,sigma0=None,lscalenorm=None,ltotnorm=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,luminosity_density=None,luminosity_density_2d=None,enclosed_luminosity=None):
+        def __init__(self,model=None,luminosity_tot=None,upsilon=None,r_scale=None,nu_scale=None,sigma0=None,lscalenorm=None,ltotnorm=None,n_index=None,alpha=None,beta=None,gamma=None,rhalf_2d=None,rhalf_3d=None,luminosity_density=None,luminosity_density_2d=None,enclosed_luminosity=None):
 
             self.model=model
             self.luminosity_tot=luminosity_tot
@@ -545,6 +545,7 @@ def get_tracer(model,**params):
             self.sigma0=sigma0
             self.lscalenorm=lscalenorm
             self.ltotnorm=ltotnorm
+            self.n_index=n_index
             self.alpha=alpha
             self.beta=beta
             self.gamma=gamma
@@ -578,7 +579,7 @@ def get_tracer(model,**params):
         def enclosed_luminosity(x):
             return sersic_enclosed_luminosity(x,params['n_index'])
 
-        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],upsilon=params['upsilon'],nu_scale=nu_scale,sigma0=sigma0,lscalenorm=sersic_lscalenorm(params['n_index']),ltotnorm=sersic_ltotnorm(params['n_index']),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
+        return tracer(model=model,luminosity_tot=params['luminosity_tot'],r_scale=params['r_scale'],n_index=params['n_index'],upsilon=params['upsilon'],nu_scale=nu_scale,sigma0=sigma0,lscalenorm=sersic_lscalenorm(params['n_index']),ltotnorm=sersic_ltotnorm(params['n_index']),rhalf_2d=rhalf_2d,rhalf_3d=rhalf_3d,luminosity_density=luminosity_density,luminosity_density_2d=luminosity_density_2d,enclosed_luminosity=enclosed_luminosity)
     
     if model=='exp':
 
