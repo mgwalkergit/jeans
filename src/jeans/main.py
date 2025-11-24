@@ -242,7 +242,6 @@ def plum_luminosity_density_2d(x):#Sigma(X) / Sigma0, X=R/r_scale
 def sersic_luminosity_density(x,n_index):#nu(x) / nu_scale, x=r/r_scale
     bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
     pn=1.-0.6097/n_index+0.05463/n_index**2
-    re=r_scale*(bn**n_index)
     return (x*bn**(-n_index))**(-pn)*np.exp(-bn*(x*bn**(-n_index))**(1./n_index))
 
 def sersic_luminosity_density_2d(x,n_index):
@@ -667,7 +666,7 @@ def get_rhalf(model,r_scale,**params):
         ntot=(1.-params['ellipticity'])*np.pi*r_scale**2*params['bigsigma0']
     elif model=='sersic':
         bn=2.*params['n_index']-1./3.+4./(405.*params['n_index'])+46./(25515.*params['n_index']**2)+131./(1148175.*params['n_index']**3)-2194697./(30690717750.*params['n_index']**4)#Ciotti&Bertin 1999 approximation
-        re=r_scale*(bn**params['n_index'])
+        re=params['r_scale']*(bn**params['n_index'])
         pn=1.-0.6097/params['n_index']+0.05463/params['n_index']**2
         rhalf_2d=re
         rhalf_3d=np.nan#not yet implemented
