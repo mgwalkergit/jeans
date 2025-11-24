@@ -666,7 +666,7 @@ def get_rhalf(model,r_scale,**params):
         ntot=(1.-params['ellipticity'])*np.pi*r_scale**2*params['bigsigma0']
     elif model=='sersic':
         bn=2.*params['n_index']-1./3.+4./(405.*params['n_index'])+46./(25515.*params['n_index']**2)+131./(1148175.*params['n_index']**3)-2194697./(30690717750.*params['n_index']**4)#Ciotti&Bertin 1999 approximation
-        re=params['r_scale']*(bn**params['n_index'])
+        re=r_scale*(bn**params['n_index'])
         pn=1.-0.6097/params['n_index']+0.05463/params['n_index']**2
         rhalf_2d=re
         rhalf_3d=np.nan#not yet implemented
