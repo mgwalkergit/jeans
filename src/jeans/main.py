@@ -290,10 +290,24 @@ def plum_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
     return (x**3)/(1.+x**2)**(1.5)
 
 def sersic_enclosed_luminosity(x,n_index):
-    bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
-    pn=1.-0.6097/n_index+0.05463/n_index**2
-    return scipy.special.gammainc((3.-pn)*n_index,bn*(x*bn**(-n_index))**(1./n_index))/scipy.special.gamma((3.-pn)*n_index)
-
+    if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
+        bn=2.*n_index-1./3.+4./(405.*n_index)+46./(25515.*n_index**2)+131./(1148175.*n_index**3)-2194697./(30690717750.*n_index**4)#Ciotti&Bertin 1999 approximation
+        pn=1.-0.6097/n_index+0.05463/n_index**2
+        result=scipy.special.gammainc((3.-pn)*n_index,bn*(x.value*bn**(-n_index))**(1./n_index))/scipy.special.gamma((3.-pn)*n_index)
+        if ((type(x.value) is list)|(type(x.value) is np.ndarray)):
+            result[x.value>100]=1.
+        else:
+            if x.value>100:
+                result=1.
+    else:
+        result=scipy.special.gammainc((3.-pn)*n_index,bn*(x*bn**(-n_index))**(1./n_index))/scipy.special.gamma((3.-pn)*n_index)
+        if ((type(x) is list)|(type(x) is np.ndarray)):
+            result[x>100]=1.
+        else:
+            if x>100.:
+                result=1.
+    return result
+        
 def exp_enclosed_luminosity(x):#L(x) / luminosity_tot, x=r/r_scale
     if type(x) is ap.units.quantity.Quantity:#have to work around problems with scipy.special.modstruve working with quantities
         result=1./(3.*np.pi)*x*(3.*np.pi*scipy.special.kn(2,x.value)*scipy.special.modstruve(1,x.value)+scipy.special.kn(1,x.value)*(3.*np.pi*scipy.special.modstruve(2,x.value)-4.*x.value))
